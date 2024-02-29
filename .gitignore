@@ -1,0 +1,74 @@
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Generated files
+/.cache/
+/build/
+/turtile
+*-protocol.c
+*-protocol.h
+compile_commands.json
+
+# Dependency directories
+/deps/
+/vendor/
+
+# Emacs specific files
+# Emacs backup files
+*~
+# Emacs auto-save files
+\#*\#
+# Emacs temporary files
+.\#*
+
+# Editor/IDE specific files
+.vscode/
+.idea/
+
+# Local configuration files
+*.local
+
+# System-specific files
+.DS_Store
+Thumbs.db
