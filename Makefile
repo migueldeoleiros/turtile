@@ -12,7 +12,7 @@ xdg-shell-protocol.h:
 	$(WAYLAND_SCANNER) server-header \
 		$(WAYLAND_PROTOCOLS)/stable/xdg-shell/xdg-shell.xml $@
 
-tinywl: tinywl.c xdg-shell-protocol.h
+turtile: main.c xdg-shell-protocol.h
 	$(CC) $(CFLAGS) \
 		-g -Werror -I. \
 		-DWLR_USE_UNSTABLE \
@@ -20,7 +20,7 @@ tinywl: tinywl.c xdg-shell-protocol.h
 		$(LIBS)
 
 clean:
-	rm -f tinywl xdg-shell-protocol.h xdg-shell-protocol.c
+	rm -f turtile xdg-shell-protocol.h xdg-shell-protocol.c
 
-.DEFAULT_GOAL=tinywl
+.DEFAULT_GOAL=turtile
 .PHONY: clean
