@@ -17,28 +17,116 @@ struct turtile_toplevel {
 	struct wl_listener request_fullscreen;
 };
 
+/**
+ * Focuses the given surface by setting it as the keyboard focused surface of
+ * the compositor's seat. This function only deals with keyboard focus.
+ *
+ * @param toplevel - The turtile toplevel to focus the surface on.
+ * @param surface - The surface to focus.
+ */
 void focus_toplevel(struct turtile_toplevel *toplevel,
 						   struct wlr_surface *surface);
 
+/**
+ * Given a server, layout coordinates, and optional surface and position
+ * pointers, this function returns the topmost node in the scene at the given
+ * layout coords. It only cares about surface nodes as we are specifically
+ * looking for a surface in the surface tree of a turtile_toplevel.
+ *
+ * @param server - The turtile server to look for the surface in.
+ * @param lx - The x coordinate of the layout position to look for.
+ * @param ly - The y coordinate of the layout position to look for.
+ * @param surface - An optional pointer to store the focused surface in.
+ * @param sx - An optional pointer to store the x coordinate of the surface in.
+ * @param sy - An optional pointer to store the y coordinate of the surface in.
+ *
+ * @returns A pointer to the topmost node in the scene at the given layout coords, or
+ *  NULL if no such node is found.
+ */
 struct turtile_toplevel *desktop_toplevel_at(
 		struct turtile_server *server, double lx, double ly,
 		struct wlr_surface **surface, double *sx, double *sy);
 
+/**
+ * Called when the surface is mapped, or ready to display on-screen.
+ *
+ * @param listener - The listener that triggered this callback.
+ * @param data - The data passed to the listener, which is the turtile toplevel
+ *         associated with the surface.
+ */
 void xdg_toplevel_map(struct wl_listener *listener, void *data);
 
+/**
+ * Called when the surface is unmapped, and should no longer be shown.
+ *
+ * @param listener - The listener that triggered this callback.
+ * @param data - The data passed to the listener, which is the turtile toplevel
+ *         associated with the surface.
+ */
 void xdg_toplevel_unmap(struct wl_listener *listener, void *data);
 
+/**
+ * Called when the xdg_toplevel is destroyed.
+ *
+ * @param listener - The listener that triggered this callback.
+ * @param data - The data passed to the listener, which is the turtile toplevel
+ *         associated with the surface.
+ */
 void xdg_toplevel_destroy(struct wl_listener *listener, void *data);
 
+/**
+ * Sets up an interactive move or resize operation, where the compositor
+ * stops propagating pointer events to clients and instead consumes them
+ * itself, to move or resize windows.
+ *
+ * @param toplevel - The turtile toplevel to move or resize.
+ * @param mode - The mode of the interactive operation (TURTILE_CURSOR_MOVE or
+ *         TURTILE_CURSOR_RESIZE).
+ * @param edges - The edges to resize (for TURTILE_CURSOR_RESIZE mode).
+ */
 void begin_interactive(struct turtile_toplevel *toplevel,
 							  enum turtile_cursor_mode mode, uint32_t edges);
 
+/**
+ * This event is raised when a client would like to begin an interactive move,
+ * typically because the user clicked on their client-side decorations.
+ *
+ * @param listener - The listener that triggered this callback.
+ * @param data - The data passed to the listener, which is the turtile toplevel
+ *         associated with the surface.
+ */
 void xdg_toplevel_request_move(struct wl_listener *listener, void *data);
 
+/**
+ * This event is raised when a client would like to begin an interactive
+ * resize, typically because the user clicked on their client-side
+ * decorations.
+ *
+ * @param listener - The listener that triggered this callback.
+ * @param data - The data passed to the listener, which is a
+ *         wlr_xdg_toplevel_resize_event struct containing the resize edges.
+ */
 void xdg_toplevel_request_resize(struct wl_listener *listener, void *data);
 
+/**
+ * This event is raised when a client would like to maximize itself,
+ * typically because the user clicked on the maximize button on
+ * client-side decorations. turtile doesn't currently support maximization,
+ * but to conform to xdg-shell protocol we still must send a configure.
+ *
+ * @param listener - The listener that triggered this callback.
+ * @param data - The data passed to the listener, which is the turtile
+ *         toplevel associated with the surface.
+ */
 void xdg_toplevel_request_maximize(struct wl_listener *listener, void *data);
 
+/**
+ * Just as with request_maximize, we must send a configure here.
+ *
+ * @param listener - The listener that triggered this callback.
+ * @param data - The data passed to the listener, which is the turtile
+ *         toplevel associated with the surface.
+ */
 void xdg_toplevel_request_fullscreen(struct wl_listener *listener, void *data);
 
 #endif // TURTILE_TOPLEVEL_H
