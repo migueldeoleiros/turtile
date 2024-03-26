@@ -112,7 +112,7 @@ void xdg_toplevel_destroy(struct wl_listener *listener, void *data) {
 void begin_interactive(struct turtile_toplevel *toplevel,
 		enum turtile_cursor_mode mode, uint32_t edges) {
 	/* This function sets up an interactive move or resize operation, where the
-	 * compositor stops propegating pointer events to clients and instead
+	 * compositor stops propagating pointer events to clients and instead
 	 * consumes them itself, to move or resize windows. */
 	struct turtile_server *server = toplevel->server;
 	struct wlr_surface *focused_surface =
