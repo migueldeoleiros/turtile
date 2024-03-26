@@ -45,8 +45,26 @@ struct turtile_server {
     struct wl_listener new_output;
 };
 
+/**
+ * This function is called when a new input device becomes available. It handles
+ * the event by determining the type of the device and calling the appropriate
+ * function to handle it. It also sets the capabilities of the wlr_seat object
+ * based on the available input devices.
+ *
+ * @param listener - The listener that received the event.
+ * @param data - The input device that was created.
+ */
 void server_new_input(struct wl_listener *listener, void *data);
 
+/**
+ * This function is called when a new xdg surface is created by a client. It
+ * handles the event by creating a new turtile_toplevel object for the surface
+ * if it is a toplevel, or by adding it to the scene graph if it is a popup.
+ * It also sets up listeners for various events that the surface can emit.
+ *
+ * @param listener - The listener that received the event.
+ * @param data - The xdg surface that was created.
+ */
 void server_new_xdg_surface(struct wl_listener *listener, void *data);
 
 #endif // TURTILE_SERVER_H
