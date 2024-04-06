@@ -4,9 +4,9 @@
 #include <wlr/types/wlr_xdg_shell.h>
 
 enum turtile_cursor_mode {
-	TURTILE_CURSOR_PASSTHROUGH,
-	TURTILE_CURSOR_MOVE,
-	TURTILE_CURSOR_RESIZE,
+    TURTILE_CURSOR_PASSTHROUGH,
+    TURTILE_CURSOR_MOVE,
+    TURTILE_CURSOR_RESIZE,
 };
 
 struct turtile_server {

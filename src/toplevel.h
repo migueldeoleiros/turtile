@@ -4,17 +4,17 @@
 #include "cursor.h"
 
 struct turtile_toplevel {
-	struct wl_list link;
-	struct turtile_server *server;
-	struct wlr_xdg_toplevel *xdg_toplevel;
-	struct wlr_scene_tree *scene_tree;
-	struct wl_listener map;
-	struct wl_listener unmap;
-	struct wl_listener destroy;
-	struct wl_listener request_move;
-	struct wl_listener request_resize;
-	struct wl_listener request_maximize;
-	struct wl_listener request_fullscreen;
+    struct wl_list link;
+    struct turtile_server *server;
+    struct wlr_xdg_toplevel *xdg_toplevel;
+    struct wlr_scene_tree *scene_tree;
+    struct wl_listener map;
+    struct wl_listener unmap;
+    struct wl_listener destroy;
+    struct wl_listener request_move;
+    struct wl_listener request_resize;
+    struct wl_listener request_maximize;
+    struct wl_listener request_fullscreen;
 };
 
 /**
@@ -25,7 +25,7 @@ struct turtile_toplevel {
  * @param surface - The surface to focus.
  */
 void focus_toplevel(struct turtile_toplevel *toplevel,
-						   struct wlr_surface *surface);
+                           struct wlr_surface *surface);
 
 /**
  * Given a server, layout coordinates, and optional surface and position
@@ -44,8 +44,8 @@ void focus_toplevel(struct turtile_toplevel *toplevel,
  *  NULL if no such node is found.
  */
 struct turtile_toplevel *desktop_toplevel_at(
-		struct turtile_server *server, double lx, double ly,
-		struct wlr_surface **surface, double *sx, double *sy);
+        struct turtile_server *server, double lx, double ly,
+        struct wlr_surface **surface, double *sx, double *sy);
 
 /**
  * Called when the surface is mapped, or ready to display on-screen.
@@ -85,7 +85,7 @@ void xdg_toplevel_destroy(struct wl_listener *listener, void *data);
  * @param edges - The edges to resize (for TURTILE_CURSOR_RESIZE mode).
  */
 void begin_interactive(struct turtile_toplevel *toplevel,
-							  enum turtile_cursor_mode mode, uint32_t edges);
+                              enum turtile_cursor_mode mode, uint32_t edges);
 
 /**
  * This event is raised when a client would like to begin an interactive move,
