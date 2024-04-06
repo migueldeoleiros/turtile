@@ -4,13 +4,13 @@
 #include "server.h"
 
 struct turtile_keyboard {
-	struct wl_list link;
-	struct turtile_server *server;
-	struct wlr_keyboard *wlr_keyboard;
+    struct wl_list link;
+    struct turtile_server *server;
+    struct wlr_keyboard *wlr_keyboard;
 
-	struct wl_listener modifiers;
-	struct wl_listener key;
-	struct wl_listener destroy;
+    struct wl_listener modifiers;
+    struct wl_listener key;
+    struct wl_listener destroy;
 };
 
 /**
@@ -65,5 +65,5 @@ void keyboard_handle_destroy(struct wl_listener *listener, void *data);
  * @param device - The wlr_input_device structure associated with the keyboard.
  */
 void server_new_keyboard(struct turtile_server *server,
-								struct wlr_input_device *device);
+                                struct wlr_input_device *device);
 #endif // TURTILE_KEYBOARD_H

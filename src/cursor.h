@@ -14,7 +14,7 @@
  * @param device - The wlr_input_device instance.
  */
 void server_new_pointer(struct turtile_server *server,
-							   struct wlr_input_device *device);
+                               struct wlr_input_device *device);
 
 /**
  * This function is called when a client requests to set a cursor image. It checks
