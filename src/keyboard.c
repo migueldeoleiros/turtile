@@ -44,13 +44,12 @@ void keyboard_handle_modifiers(
         &keyboard->wlr_keyboard->modifiers);
 }
 
-bool handle_keybinding(struct turtile_server *server, xkb_keysym_t sym) {
+bool handle_keybinding(struct turtile_server *server, uint32_t modifiers,
+					   xkb_keysym_t sym) {
     /*
      * Here we handle compositor keybindings. This is when the compositor is
      * processing keys, rather than passing them on to the client for its own
      * processing.
-     *
-     * This function assumes Alt is held down.
      */
     switch (sym) {
     case XKB_KEY_Escape:
@@ -89,12 +88,10 @@ void keyboard_handle_key(
 
     bool handled = false;
     uint32_t modifiers = wlr_keyboard_get_modifiers(keyboard->wlr_keyboard);
-    if ((modifiers & WLR_MODIFIER_ALT) &&
-            event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
-        /* If alt is held down and this button was _pressed_, we attempt to
-         * process it as a compositor keybinding. */
+    if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+        /* On _pressed_ we attempt to process a compositor keybinding. */
         for (int i = 0; i < nsyms; i++) {
-            handled = handle_keybinding(server, syms[i]);
+            handled = handle_keybinding(server, modifiers, syms[i]);
         }
     }
 

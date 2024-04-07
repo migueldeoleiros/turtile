@@ -53,11 +53,13 @@ void keyboard_handle_modifiers(struct wl_listener *listener, void *data);
  * is processing keys, rather than passing them on to the client.
  *
  * @param server - The turtile_server structure representing the compositor.
+ * @param modifier - The modifier keys pressed 
  * @param sym - The xkb_keysym_t value of the key that was pressed.
  *
  * @returns A boolean indicating whether the keybinding was handled or not.
  */
-bool handle_keybinding(struct turtile_server *server, xkb_keysym_t sym);
+bool handle_keybinding(struct turtile_server *server, uint32_t modifiers,
+					   xkb_keysym_t sym);
 
 /**
  * This function is called when a key is pressed or released. It first checks
