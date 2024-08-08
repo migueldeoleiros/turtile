@@ -21,8 +21,12 @@
 */
 
 #include "keyboard.h"
+#include "config.h"
 #include "toplevel.h"
+
+#include "wlr/util/log.h"
 #include <stdlib.h>
+#include <unistd.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_xdg_shell.h>
 
@@ -44,14 +48,9 @@ void keyboard_handle_modifiers(
         &keyboard->wlr_keyboard->modifiers);
 }
 
-bool handle_keybinding(struct turtile_server *server, xkb_keysym_t sym) {
-    /*
-     * Here we handle compositor keybindings. This is when the compositor is
-     * processing keys, rather than passing them on to the client for its own
-     * processing.
-     *
-     * This function assumes Alt is held down.
-     */
+bool handle_keybinding(struct turtile_server *server, uint32_t modifiers,
+					   xkb_keysym_t sym) {
+    turtile_keybind_t *keybind;
     switch (sym) {
     case XKB_KEY_Escape:
         wl_display_terminate(server->wl_display);
@@ -66,6 +65,14 @@ bool handle_keybinding(struct turtile_server *server, xkb_keysym_t sym) {
         focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
         break;
     default:
+        wl_list_for_each(keybind, &config_get_instance()->keybinds, link) {
+            if (keybind->keys[0] == sym || keybind->keys[1] == sym || keybind->keys[2] == sym) {
+                wlr_log(WLR_INFO, "Executing command: %s", keybind->cmd);
+                if (fork() == 0)
+			        execl("/bin/sh", "/bin/sh", "-c", keybind->cmd, (void *)NULL);
+                return true;
+            }
+        }
         return false;
     }
     return true;
@@ -89,12 +96,10 @@ void keyboard_handle_key(
 
     bool handled = false;
     uint32_t modifiers = wlr_keyboard_get_modifiers(keyboard->wlr_keyboard);
-    if ((modifiers & WLR_MODIFIER_ALT) &&
-            event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
-        /* If alt is held down and this button was _pressed_, we attempt to
-         * process it as a compositor keybinding. */
+    if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+        /* On _pressed_ we attempt to process a compositor keybinding. */
         for (int i = 0; i < nsyms; i++) {
-            handled = handle_keybinding(server, syms[i]);
+            handled = handle_keybinding(server, modifiers, syms[i]);
         }
     }
 
