@@ -31,9 +31,22 @@ struct turtile_popup {
     struct wl_listener destroy;
 };
 
-//TODO add documenting comments
+/**
+ * Called when a new surface state is committed.
+ *
+ * @param listener - The listener that triggered this callback.
+ * @param data - The data passed to the listener, which is the turtile
+ *         popup associated with the surface.
+ */
 void xdg_popup_commit(struct wl_listener *listener, void *data);
 
+/**
+ * Called when the xdg_popup is destroyed.
+ *
+ * @param listener - The listener that triggered this callback.
+ * @param data - The data passed to the listener, which is the turtile
+ *         popup associated with the surface.
+ */
 void xdg_popup_destroy(struct wl_listener *listener, void *data);
 
 #endif // TURTILE_POPUP_H

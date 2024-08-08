@@ -32,8 +32,6 @@
 #include <wlr/types/wlr_xdg_shell.h>
 
 void server_new_input(struct wl_listener *listener, void *data) {
-    /* This event is raised by the backend when a new input device becomes
-     * available. */
     struct turtile_server *server =
         wl_container_of(listener, server, new_input);
     struct wlr_input_device *device = data;
@@ -58,7 +56,6 @@ void server_new_input(struct wl_listener *listener, void *data) {
 }
 
 void server_new_xdg_toplevel(struct wl_listener *listener, void *data) {
-	/* This event is raised when a client creates a new toplevel (application window). */
 	struct turtile_server *server = wl_container_of(listener, server, new_xdg_toplevel);
 	struct wlr_xdg_toplevel *xdg_toplevel = data;
 
@@ -94,7 +91,6 @@ void server_new_xdg_toplevel(struct wl_listener *listener, void *data) {
 }
 
 void server_new_xdg_popup(struct wl_listener *listener, void *data) {
-	/* This event is raised when a client creates a new popup. */
 	struct wlr_xdg_popup *xdg_popup = data;
 
 	struct turtile_popup *popup = calloc(1, sizeof(*popup));

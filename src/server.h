@@ -80,9 +80,20 @@ struct turtile_server {
  */
 void server_new_input(struct wl_listener *listener, void *data);
 
-// TODO update comments
+/**
+ * This event is raised when a client creates a new toplevel(application window)
+ *
+ * @param listener - The listener that received the event.
+ * @param data - The toplevel that was created.
+ */
 void server_new_xdg_toplevel(struct wl_listener *listener, void *data);
 
+/**
+ * This event is raised when a client creates a new popup.
+ *
+ * @param listener - The listener that received the event.
+ * @param data - The popup that was created.
+ */
 void server_new_xdg_popup(struct wl_listener *listener, void *data);
 
 #endif // TURTILE_SERVER_H
