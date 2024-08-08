@@ -20,23 +20,24 @@
    ----------------------------------------------------------------------------
 */
 
-#define _POSIX_C_SOURCE 200112L
 #include "server.h"
 #include "keyboard.h"
 #include "output.h"
 #include "cursor.h"
 #include "toplevel.h"
+#include "popup.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <wlr/backend.h>
 #include <wlr/render/allocator.h>
+#include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_data_device.h>
-#include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xcursor_manager.h>
+#include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 
 int main(int argc, char *argv[]) {
@@ -67,7 +68,7 @@ int main(int argc, char *argv[]) {
      * output hardware. The autocreate option will choose the most suitable
      * backend based on the current environment, such as opening an X11 window
      * if an X11 server is running. */
-    server.backend = wlr_backend_autocreate(server.wl_display, NULL);
+    server.backend = wlr_backend_autocreate(wl_display_get_event_loop(server.wl_display), NULL);
     if (server.backend == NULL) {
         wlr_log(WLR_ERROR, "failed to create wlr_backend");
         return 1;
@@ -109,7 +110,7 @@ int main(int argc, char *argv[]) {
 
     /* Creates an output layout, which a wlroots utility for working with an
      * arrangement of screens in a physical layout. */
-    server.output_layout = wlr_output_layout_create();
+    server.output_layout = wlr_output_layout_create(server.wl_display);
 
     /* Configure a listener to be notified when new outputs are available on the
      * backend. */
@@ -132,9 +133,10 @@ int main(int argc, char *argv[]) {
      */
     wl_list_init(&server.toplevels);
     server.xdg_shell = wlr_xdg_shell_create(server.wl_display, 3);
-    server.new_xdg_surface.notify = server_new_xdg_surface;
-    wl_signal_add(&server.xdg_shell->events.new_surface,
-            &server.new_xdg_surface);
+	server.new_xdg_toplevel.notify = server_new_xdg_toplevel;
+	wl_signal_add(&server.xdg_shell->events.new_toplevel, &server.new_xdg_toplevel);
+	server.new_xdg_popup.notify = server_new_xdg_popup;
+	wl_signal_add(&server.xdg_shell->events.new_popup, &server.new_xdg_popup);
 
     /*
      * Creates a cursor, which is a wlroots utility for tracking the cursor
@@ -225,7 +227,10 @@ int main(int argc, char *argv[]) {
     wl_display_destroy_clients(server.wl_display);
     wlr_scene_node_destroy(&server.scene->tree.node);
     wlr_xcursor_manager_destroy(server.cursor_mgr);
-    wlr_output_layout_destroy(server.output_layout);
+	wlr_cursor_destroy(server.cursor);
+	wlr_allocator_destroy(server.allocator);
+	wlr_renderer_destroy(server.renderer);
+	wlr_backend_destroy(server.backend);
     wl_display_destroy(server.wl_display);
     return 0;
 }

@@ -24,7 +24,7 @@
 #define TURTILE_CURSOR_H
 
 #include "server.h"
-#include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_input_device.h>
 
 // enum turtile_cursor_mode is declared over in server.h to avoid recursion
 

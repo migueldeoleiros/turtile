@@ -24,6 +24,7 @@
 #define TURTILE_TOPLEVEL_H
 
 #include "cursor.h"
+#include <wlr/types/wlr_output.h>
 
 struct turtile_toplevel {
     struct wl_list link;
@@ -32,6 +33,7 @@ struct turtile_toplevel {
     struct wlr_scene_tree *scene_tree;
     struct wl_listener map;
     struct wl_listener unmap;
+    struct wl_listener commit;
     struct wl_listener destroy;
     struct wl_listener request_move;
     struct wl_listener request_resize;
@@ -86,6 +88,15 @@ void xdg_toplevel_map(struct wl_listener *listener, void *data);
  *         associated with the surface.
  */
 void xdg_toplevel_unmap(struct wl_listener *listener, void *data);
+
+/**
+ * Called when a new surface state is committed.
+ *
+ * @param listener - The listener that triggered this callback.
+ * @param data - The data passed to the listener, which is the turtile toplevel
+ *         associated with the surface.
+ */
+void xdg_toplevel_commit(struct wl_listener *listener, void *data);
 
 /**
  * Called when the xdg_toplevel is destroyed.

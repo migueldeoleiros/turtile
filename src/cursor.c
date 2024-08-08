@@ -22,10 +22,12 @@
 
 #include "cursor.h"
 #include "toplevel.h"
+#include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_scene.h>
-#include <wlr/util/edges.h>
-
+#include <wlr/types/wlr_xdg_shell.h>
 
 void server_new_pointer(struct turtile_server *server,
         struct wlr_input_device *device) {
@@ -220,7 +222,7 @@ void server_cursor_button(struct wl_listener *listener, void *data) {
     struct wlr_surface *surface = NULL;
     struct turtile_toplevel *toplevel = desktop_toplevel_at(server,
             server->cursor->x, server->cursor->y, &surface, &sx, &sy);
-    if (event->state == WLR_BUTTON_RELEASED) {
+	if (event->state == WL_POINTER_BUTTON_STATE_RELEASED) {
         /* If you released any buttons, we exit interactive move/resize mode. */
         reset_cursor_mode(server);
     } else {
@@ -236,9 +238,9 @@ void server_cursor_axis(struct wl_listener *listener, void *data) {
         wl_container_of(listener, server, cursor_axis);
     struct wlr_pointer_axis_event *event = data;
     /* Notify the client with pointer focus of the axis event. */
-    wlr_seat_pointer_notify_axis(server->seat,
-            event->time_msec, event->orientation, event->delta,
-            event->delta_discrete, event->source);
+	wlr_seat_pointer_notify_axis(server->seat,
+			event->time_msec, event->orientation, event->delta,
+			event->delta_discrete, event->source, event->relative_direction);
 }
 
 void server_cursor_frame(struct wl_listener *listener, void *data) {

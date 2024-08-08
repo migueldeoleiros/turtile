@@ -24,6 +24,8 @@
 #define TURTILE_KEYBOARD_H
 
 #include "server.h"
+#include <wlr/types/wlr_input_device.h>
+#include <xkbcommon/xkbcommon.h>
 
 struct turtile_keyboard {
     struct wl_list link;

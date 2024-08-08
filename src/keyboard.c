@@ -23,6 +23,8 @@
 #include "keyboard.h"
 #include "toplevel.h"
 #include <stdlib.h>
+#include <wlr/types/wlr_seat.h>
+#include <wlr/types/wlr_xdg_shell.h>
 
 void keyboard_handle_modifiers(
         struct wl_listener *listener, void *data) {
