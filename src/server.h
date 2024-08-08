@@ -23,7 +23,8 @@
 #ifndef TURTILE_SERVER_H
 #define TURTILE_SERVER_H
 
-#include <wlr/types/wlr_xdg_shell.h>
+#include <wayland-server-core.h>
+#include <wlroots-0.18/wlr/util/box.h>
 
 enum turtile_cursor_mode {
     TURTILE_CURSOR_PASSTHROUGH,
@@ -40,7 +41,8 @@ struct turtile_server {
     struct wlr_scene_output_layout *scene_layout;
 
     struct wlr_xdg_shell *xdg_shell;
-    struct wl_listener new_xdg_surface;
+    struct wl_listener new_xdg_toplevel;
+    struct wl_listener new_xdg_popup;
     struct wl_list toplevels;
 
     struct wlr_cursor *cursor;
@@ -78,15 +80,9 @@ struct turtile_server {
  */
 void server_new_input(struct wl_listener *listener, void *data);
 
-/**
- * This function is called when a new xdg surface is created by a client. It
- * handles the event by creating a new turtile_toplevel object for the surface
- * if it is a toplevel, or by adding it to the scene graph if it is a popup.
- * It also sets up listeners for various events that the surface can emit.
- *
- * @param listener - The listener that received the event.
- * @param data - The xdg surface that was created.
- */
-void server_new_xdg_surface(struct wl_listener *listener, void *data);
+// TODO update comments
+void server_new_xdg_toplevel(struct wl_listener *listener, void *data);
+
+void server_new_xdg_popup(struct wl_listener *listener, void *data);
 
 #endif // TURTILE_SERVER_H

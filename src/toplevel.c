@@ -22,8 +22,10 @@
 
 #include "toplevel.h"
 #include <stdlib.h>
+#include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_scene.h>
-#include <wlr/util/edges.h>
+#include <wlr/types/wlr_xcursor_manager.h>
+#include <wlr/types/wlr_xdg_shell.h>
 
 void focus_toplevel(struct turtile_toplevel *toplevel, struct wlr_surface *surface) {
     /* Note: this function only deals with keyboard focus. */
@@ -116,12 +118,26 @@ void xdg_toplevel_unmap(struct wl_listener *listener, void *data) {
     wl_list_remove(&toplevel->link);
 }
 
+void xdg_toplevel_commit(struct wl_listener *listener, void *data) {
+    /* Called when a new surface state is committed. */
+    struct turtile_toplevel *toplevel = wl_container_of(listener, toplevel, commit);
+
+    if (toplevel->xdg_toplevel->base->initial_commit) {
+        /* When an xdg_surface performs an initial commit, the compositor must
+         * reply with a configure so the client can map the surface. turtile
+         * configures the xdg_toplevel with 0,0 size to let the client pick the
+         * dimensions itself. */
+        wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, 0, 0);
+    }
+}
+
 void xdg_toplevel_destroy(struct wl_listener *listener, void *data) {
     /* Called when the xdg_toplevel is destroyed. */
     struct turtile_toplevel *toplevel = wl_container_of(listener, toplevel, destroy);
 
     wl_list_remove(&toplevel->map.link);
     wl_list_remove(&toplevel->unmap.link);
+    wl_list_remove(&toplevel->commit.link);
     wl_list_remove(&toplevel->destroy.link);
     wl_list_remove(&toplevel->request_move.link);
     wl_list_remove(&toplevel->request_resize.link);
@@ -198,10 +214,14 @@ void xdg_toplevel_request_maximize(
      * typically because the user clicked on the maximize button on
      * client-side decorations. turtile doesn't support maximization, but
      * to conform to xdg-shell protocol we still must send a configure.
-     * wlr_xdg_surface_schedule_configure() is used to send an empty reply. */
+     * wlr_xdg_surface_schedule_configure() is used to send an empty reply.
+     * However, if the request was sent before an initial commit, we don't do
+     * anything and let the client finish the initial surface setup. */
     struct turtile_toplevel *toplevel =
         wl_container_of(listener, toplevel, request_maximize);
-    wlr_xdg_surface_schedule_configure(toplevel->xdg_toplevel->base);
+    if (toplevel->xdg_toplevel->base->initialized) {
+		wlr_xdg_surface_schedule_configure(toplevel->xdg_toplevel->base);
+    }
 }
 
 void xdg_toplevel_request_fullscreen(
@@ -209,5 +229,7 @@ void xdg_toplevel_request_fullscreen(
     /* Just as with request_maximize, we must send a configure here. */
     struct turtile_toplevel *toplevel =
         wl_container_of(listener, toplevel, request_fullscreen);
-    wlr_xdg_surface_schedule_configure(toplevel->xdg_toplevel->base);
+    if (toplevel->xdg_toplevel->base->initialized) {
+        wlr_xdg_surface_schedule_configure(toplevel->xdg_toplevel->base);
+    }
 }
