@@ -15,11 +15,11 @@ xdg-shell-protocol.h:
 	$(WAYLAND_SCANNER) server-header \
 		$(WAYLAND_PROTOCOLS)/stable/xdg-shell/xdg-shell.xml $@
 
-turtile: src/main.c src/cursor.c src/keyboard.c src/output.c src/server.c src/toplevel.c src/popup.c xdg-shell-protocol.h
+turtile: src/main.c src/cursor.c src/keyboard.c src/output.c src/server.c src/toplevel.c src/popup.c xdg-shell-protocol.h src/config.h
 	$(CC) $(CFLAGS) \
 		-g -Werror -I. \
 		-DWLR_USE_UNSTABLE \
-		-o $@ $< src/cursor.c src/keyboard.c src/output.c src/server.c src/toplevel.c src/popup.c \
+		-o $@ $< src/cursor.c src/keyboard.c src/output.c src/server.c src/toplevel.c src/popup.c src/config.c \
 		$(LIBS)
 
 clean:

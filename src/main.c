@@ -26,7 +26,9 @@
 #include "cursor.h"
 #include "toplevel.h"
 #include "popup.h"
+#include "config.h"
 
+#include <bits/getopt_core.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -45,18 +47,21 @@ int main(int argc, char *argv[]) {
     char *startup_cmd = NULL;
 
     int c;
-    while ((c = getopt(argc, argv, "s:h")) != -1) {
+    while ((c = getopt(argc, argv, "s:c:h")) != -1) {
         switch (c) {
         case 's':
             startup_cmd = optarg;
             break;
+        case 'c':
+            config_load_from_file(optarg);
+            break;
         default:
-            printf("Usage: %s [-s startup command]\n", argv[0]);
+            printf("Usage: %s [-s startup command] [-c configuration file]\n", argv[0]);
             return 0;
         }
     }
     if (optind < argc) {
-        printf("Usage: %s [-s startup command]\n", argv[0]);
+        printf("Usage: %s [-s startup command] [-c configuration file]\n", argv[0]);
         return 0;
     }
 
@@ -214,6 +219,15 @@ int main(int argc, char *argv[]) {
             execl("/bin/sh", "/bin/sh", "-c", startup_cmd, (void *)NULL);
         }
     }
+
+	// Run autostart commands from config
+	turtile_autostart_t *autostart;
+    wl_list_for_each(autostart, &config_get_instance()->autostart, link) {
+        wlr_log(WLR_INFO, "Executing command: %s", autostart->cmd);
+        if (fork() == 0)
+			execl("/bin/sh", "/bin/sh", "-c", autostart->cmd, (void *)NULL);
+    }
+
     /* Run the Wayland event loop. This does not return until you exit the
      * compositor. Starting the backend rigged up all of the necessary event
      * loop configuration to listen to libinput events, DRM events, generate
@@ -224,6 +238,7 @@ int main(int argc, char *argv[]) {
 
     /* Once wl_display_run returns, we destroy all clients then shut down the
      * server. */
+	config_free_instance();
     wl_display_destroy_clients(server.wl_display);
     wlr_scene_node_destroy(&server.scene->tree.node);
     wlr_xcursor_manager_destroy(server.cursor_mgr);
