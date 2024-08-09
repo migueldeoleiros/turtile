@@ -22,8 +22,13 @@ turtile: src/main.c src/cursor.c src/keyboard.c src/output.c src/server.c src/to
 		-o $@ $< src/cursor.c src/keyboard.c src/output.c src/server.c src/toplevel.c src/popup.c src/config.c src/socket_server.c\
 		$(LIBS)
 
-clean:
-	rm -f turtile xdg-shell-protocol.h xdg-shell-protocol.c *.o
+ttcli: src/ttcli.c
+	$(CC) $(CFLAGS) -Wall -Wextra -o $@ $<
 
-.DEFAULT_GOAL=turtile
+all: turtile ttcli
+
+clean:
+	rm -f turtile ttcli xdg-shell-protocol.h xdg-shell-protocol.c *.o
+
+.DEFAULT_GOAL=all
 .PHONY: clean
