@@ -65,8 +65,12 @@ int main(int argc, char *argv[]) {
     // Build message from arguments
     int message_len = 0;
     for (int i = 1; i < argc; i++) {
-        message_len += snprintf(message + message_len,
-								MAX_MSG_SIZE - message_len, "%s ", argv[i]);
+        if (i > 1){ // Add spaces
+            message_len += snprintf(message + message_len,
+									MAX_MSG_SIZE - message_len, " ");
+		}
+		message_len += snprintf(message + message_len,
+								MAX_MSG_SIZE - message_len, "%s", argv[i]);
     }
 
     // Send message
