@@ -24,6 +24,7 @@
 #include "keyboard.h"
 #include "output.h"
 #include "cursor.h"
+#include "src/socket_server.h"
 #include "toplevel.h"
 #include "popup.h"
 #include "config.h"
@@ -234,6 +235,14 @@ int main(int argc, char *argv[]) {
      * frame events at the refresh rate, and so on. */
     wlr_log(WLR_INFO, "Running Wayland compositor on WAYLAND_DISPLAY=%s",
             socket);
+
+    /* Start socket server in a separate process */
+	// TODO: consider using a thread for this
+    if (!fork()) {
+        start_socket_server();
+        exit(0);
+    }
+
     wl_display_run(server.wl_display);
 
     /* Once wl_display_run returns, we destroy all clients then shut down the
