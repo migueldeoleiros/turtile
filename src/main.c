@@ -24,6 +24,8 @@
 #include "keyboard.h"
 #include "output.h"
 #include "cursor.h"
+#include "src/commands.h"
+#include "src/socket_server.h"
 #include "toplevel.h"
 #include "popup.h"
 #include "config.h"
@@ -32,6 +34,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <wlr/backend.h>
 #include <wlr/render/allocator.h>
 #include <wlr/types/wlr_cursor.h>
@@ -228,12 +231,25 @@ int main(int argc, char *argv[]) {
 			execl("/bin/sh", "/bin/sh", "-c", autostart->cmd, (void *)NULL);
     }
 
+
+	// Create context for the commands
+	struct turtile_context context;
+	context.server = &server;
+
+    // Create a thread for the socket server
+    pthread_t server_thread;
+    if (pthread_create(&server_thread, NULL, start_socket_server, &context) != 0) {
+        perror("Failed to create server thread");
+        return EXIT_FAILURE;
+    }
+
     /* Run the Wayland event loop. This does not return until you exit the
      * compositor. Starting the backend rigged up all of the necessary event
      * loop configuration to listen to libinput events, DRM events, generate
      * frame events at the refresh rate, and so on. */
     wlr_log(WLR_INFO, "Running Wayland compositor on WAYLAND_DISPLAY=%s",
             socket);
+
     wl_display_run(server.wl_display);
 
     /* Once wl_display_run returns, we destroy all clients then shut down the

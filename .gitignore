@@ -46,6 +46,7 @@
 /.cache/
 /build/
 /turtile
+/ttcli
 *-protocol.c
 *-protocol.h
 compile_commands.json

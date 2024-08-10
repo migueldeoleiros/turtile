@@ -15,15 +15,20 @@ xdg-shell-protocol.h:
 	$(WAYLAND_SCANNER) server-header \
 		$(WAYLAND_PROTOCOLS)/stable/xdg-shell/xdg-shell.xml $@
 
-turtile: src/main.c src/cursor.c src/keyboard.c src/output.c src/server.c src/toplevel.c src/popup.c xdg-shell-protocol.h src/config.h
+turtile: src/main.c src/cursor.c src/keyboard.c src/output.c src/server.c src/toplevel.c src/popup.c xdg-shell-protocol.h src/config.h src/socket_server.h src/commands.h
 	$(CC) $(CFLAGS) \
 		-g -Werror -I. \
 		-DWLR_USE_UNSTABLE \
-		-o $@ $< src/cursor.c src/keyboard.c src/output.c src/server.c src/toplevel.c src/popup.c src/config.c \
+		-o $@ $< src/cursor.c src/keyboard.c src/output.c src/server.c src/toplevel.c src/popup.c src/config.c src/socket_server.c src/commands.c\
 		$(LIBS)
 
-clean:
-	rm -f turtile xdg-shell-protocol.h xdg-shell-protocol.c *.o
+ttcli: src/ttcli.c
+	$(CC) $(CFLAGS) -Wall -Wextra -o $@ $<
 
-.DEFAULT_GOAL=turtile
+all: turtile ttcli
+
+clean:
+	rm -f turtile ttcli xdg-shell-protocol.h xdg-shell-protocol.c *.o
+
+.DEFAULT_GOAL=all
 .PHONY: clean
