@@ -21,8 +21,10 @@
 */
 #include "commands.h"
 #include "socket_server.h"
+#include "src/toplevel.h"
 #include <stdio.h>
 #include <string.h>
+#include <wlr/types/wlr_xdg_shell.h>
 
 typedef struct {
     char *cmd_name;
@@ -89,8 +91,31 @@ void window_command(char *tokens[], int ntokens, char *response,
     snprintf(response, MAX_MSG_SIZE,
 			 "TODO: placeholder for window command help\n");
 }
+
 void window_list_command(char *tokens[], int ntokens, char *response,
 						 struct turtile_context *context){
-    snprintf(response, MAX_MSG_SIZE,
-			 "TODO: placeholder for window list\n");
+	struct turtile_server *server = context->server;
+    if (!server || wl_list_empty(&server->toplevels)) {
+		snprintf(response, MAX_MSG_SIZE, "No windows found.\n");
+        return;
+    }
+
+    struct turtile_toplevel *toplevel;
+    size_t offset = 0; // Track the current offset in the buffer
+
+    wl_list_for_each(toplevel, &server->toplevels, link) {
+        if (toplevel->xdg_toplevel) {
+            const char *title = toplevel->xdg_toplevel->title ?
+                toplevel->xdg_toplevel->title : "Unnamed";
+
+            // Calculate remaining buffer space and append the title
+            int written = snprintf(response + offset, MAX_MSG_SIZE - offset,
+								   "Window: %s\n", title);
+            if (written < 0 || (size_t)written >= MAX_MSG_SIZE - offset) {
+                // Stop appending if there's not enough space left in the buffer
+                break;
+            }
+            offset += written;
+        }
+    }
 }
