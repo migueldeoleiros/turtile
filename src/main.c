@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <wlr/backend.h>
 #include <wlr/render/allocator.h>
 #include <wlr/types/wlr_cursor.h>
@@ -229,19 +230,19 @@ int main(int argc, char *argv[]) {
 			execl("/bin/sh", "/bin/sh", "-c", autostart->cmd, (void *)NULL);
     }
 
+    // Create a thread for the socket server
+    pthread_t server_thread;
+    if (pthread_create(&server_thread, NULL, start_socket_server, &server) != 0) {
+        perror("Failed to create server thread");
+        return EXIT_FAILURE;
+    }
+
     /* Run the Wayland event loop. This does not return until you exit the
      * compositor. Starting the backend rigged up all of the necessary event
      * loop configuration to listen to libinput events, DRM events, generate
      * frame events at the refresh rate, and so on. */
     wlr_log(WLR_INFO, "Running Wayland compositor on WAYLAND_DISPLAY=%s",
             socket);
-
-    /* Start socket server in a separate process */
-	// TODO: consider using a thread for this
-    if (!fork()) {
-        start_socket_server();
-        exit(0);
-    }
 
     wl_display_run(server.wl_display);
 

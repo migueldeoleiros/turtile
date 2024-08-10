@@ -27,11 +27,15 @@
 #include <sys/un.h>
 #include <unistd.h>
 #include "socket_server.h"
+#include "src/server.h"
 
-void handle_client(int client_socket);
-void execute_command(const char *command, char *response);
+void handle_client(int client_socket, struct turtile_server *server);
+void execute_command(const char *command, char *response,
+					 struct turtile_server *server);
 
-void start_socket_server() {
+void* start_socket_server(void *server_ptr) {
+	struct turtile_server *server = (struct turtile_server *)server_ptr;
+
     int server_socket, client_socket;
     struct sockaddr_un server_address;
 
@@ -71,14 +75,14 @@ void start_socket_server() {
             continue;
         }
 
-        handle_client(client_socket);
+        handle_client(client_socket, server);
     }
 
     close(server_socket);
     unlink(SOCKET_PATH);
 }
 
-void handle_client(int client_socket) {
+void handle_client(int client_socket, struct turtile_server *server) {
     char buffer[MAX_MSG_SIZE];
     char response[MAX_MSG_SIZE];
 
@@ -88,7 +92,7 @@ void handle_client(int client_socket) {
 
         printf("Received command: %s\n", buffer);
 
-        execute_command(buffer, response);
+        execute_command(buffer, response, server);
 
         send(client_socket, response, strlen(response), 0);
     }
@@ -96,7 +100,8 @@ void handle_client(int client_socket) {
     close(client_socket);
 }
 
-void execute_command(const char *command, char *response) {
+void execute_command(const char *command, char *response,
+					 struct turtile_server *server) {
     // TODO: Implement actual command handling and execution logic
 
     if (strcmp(command, "hello world") == 0) {

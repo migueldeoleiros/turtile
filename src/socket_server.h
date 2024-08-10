@@ -23,12 +23,13 @@
 #ifndef SOCKET_SERVER_H
 #define SOCKET_SERVER_H
 
+#include "src/server.h"
 #include <stdbool.h>
 
 #define MAX_MSG_SIZE 1024
 #define SOCKET_PATH "/tmp/turtile_socket"
 
 //TODO: add documentation comment
-void start_socket_server();
+void* start_socket_server(void *server_ptr);
 
 #endif // SOCKET_SERVER_H
