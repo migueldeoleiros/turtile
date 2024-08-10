@@ -27,14 +27,14 @@
 #include <sys/un.h>
 #include <unistd.h>
 #include "socket_server.h"
-#include "src/server.h"
+#include "server.h"
+#include "commands.h"
 
-void handle_client(int client_socket, struct turtile_server *server);
-void execute_command(const char *command, char *response,
-					 struct turtile_server *server);
+void handle_client(int client_socket, struct turtile_context *context);
 
-void* start_socket_server(void *server_ptr) {
-	struct turtile_server *server = (struct turtile_server *)server_ptr;
+void* start_socket_server(void *context_ptr) {
+	// TODO: Update this to a context pointer that could send more info
+	struct turtile_context *context = (struct turtile_context *)context_ptr;
 
     int server_socket, client_socket;
     struct sockaddr_un server_address;
@@ -75,14 +75,14 @@ void* start_socket_server(void *server_ptr) {
             continue;
         }
 
-        handle_client(client_socket, server);
+        handle_client(client_socket, context);
     }
 
     close(server_socket);
     unlink(SOCKET_PATH);
 }
 
-void handle_client(int client_socket, struct turtile_server *server) {
+void handle_client(int client_socket, struct turtile_context *context) {
     char buffer[MAX_MSG_SIZE];
     char response[MAX_MSG_SIZE];
 
@@ -92,21 +92,10 @@ void handle_client(int client_socket, struct turtile_server *server) {
 
         printf("Received command: %s\n", buffer);
 
-        execute_command(buffer, response, server);
+        execute_command(buffer, response, context);
 
         send(client_socket, response, strlen(response), 0);
     }
 
     close(client_socket);
-}
-
-void execute_command(const char *command, char *response,
-					 struct turtile_server *server) {
-    // TODO: Implement actual command handling and execution logic
-
-    if (strcmp(command, "hello world") == 0) {
-        snprintf(response, MAX_MSG_SIZE, "Hello, World!\n");
-    } else {
-        snprintf(response, MAX_MSG_SIZE, "Unknown command: %s\n", command);
-    }
 }

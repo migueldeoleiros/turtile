@@ -20,18 +20,16 @@
    ----------------------------------------------------------------------------
 */
 
-#ifndef SOCKET_SERVER_H
-#define SOCKET_SERVER_H
+#ifndef COMMANDS_H
+#define COMMANDS_H
+#include "src/server.h"
 
-#include "server.h"
-#include "commands.h"
-#include <stdbool.h>
-
-#define MAX_MSG_SIZE 1024
-#define MAX_MSG_ELEMENTS 5
-#define SOCKET_PATH "/tmp/turtile_socket"
+struct turtile_context{
+	struct turtile_server *server;
+};
 
 //TODO: add documentation comment
-void* start_socket_server(void *server_ptr);
+void execute_command(char *message, char *response,
+					 struct turtile_context *context);
 
-#endif // SOCKET_SERVER_H
+#endif // COMMANDS_H

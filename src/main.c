@@ -24,6 +24,7 @@
 #include "keyboard.h"
 #include "output.h"
 #include "cursor.h"
+#include "src/commands.h"
 #include "src/socket_server.h"
 #include "toplevel.h"
 #include "popup.h"
@@ -230,9 +231,14 @@ int main(int argc, char *argv[]) {
 			execl("/bin/sh", "/bin/sh", "-c", autostart->cmd, (void *)NULL);
     }
 
+
+	// Create context for the commands
+	struct turtile_context context;
+	context.server = &server;
+
     // Create a thread for the socket server
     pthread_t server_thread;
-    if (pthread_create(&server_thread, NULL, start_socket_server, &server) != 0) {
+    if (pthread_create(&server_thread, NULL, start_socket_server, &context) != 0) {
         perror("Failed to create server thread");
         return EXIT_FAILURE;
     }
