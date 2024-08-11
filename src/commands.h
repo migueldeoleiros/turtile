@@ -28,7 +28,17 @@ struct turtile_context{
 	struct turtile_server *server;
 };
 
-//TODO: add documentation comment
+/**
+ * Execute a command with the given message and context.
+ *
+ * This function takes a message string, splits it into tokens, and executes the
+ * corresponding command based on the tokens. If the command is not recognized,
+ * it returns an error message.
+ *
+ * @param message  The message string to execute as a command.
+ * @param response A buffer to store the response to the command.
+ * @param context  A pointer to the turtile context structure.
+ */
 void execute_command(char *message, char *response,
 					 struct turtile_context *context);
 
