@@ -87,7 +87,7 @@ void execute_command(char *message, char *response,
             }
         }
     }
-    snprintf(response, MAX_MSG_SIZE, "Unknown command: %s\n", message);
+    snprintf(response, MAX_MSG_SIZE, "FUnknown command: %s\n", message);
 }
 		
 int splitString(char *str, char *tokens[]){
