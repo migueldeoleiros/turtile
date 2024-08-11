@@ -27,11 +27,20 @@
 #include "commands.h"
 #include <stdbool.h>
 
-#define MAX_MSG_SIZE 1024
-#define MAX_MSG_ELEMENTS 5
+#define MAX_MSG_SIZE 1024 // max size of both commands and responses
+#define MAX_MSG_ELEMENTS 5 // max number of params in a command
 #define SOCKET_PATH "/tmp/turtile_socket"
 
-//TODO: add documentation comment
-void* start_socket_server(void *server_ptr);
+/**
+ * Start a socket server that listens for incoming client connections.
+ *
+ * This function creates a Unix domain socket, binds it to a specific path,
+ * and listens for incoming connections.
+ *
+ * @param context_ptr A context pointer of type turtile_context that is going
+ *                    to be sent to the commands.
+ * @return A void pointer for multithreading.
+ */
+void* start_socket_server(void *context_ptr);
 
 #endif // SOCKET_SERVER_H

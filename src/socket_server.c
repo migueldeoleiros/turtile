@@ -30,10 +30,13 @@
 #include "server.h"
 #include "commands.h"
 
+/**
+ * Handle a client connection by receiving a command, executing it,
+ * and sending a response.
+ */
 void handle_client(int client_socket, struct turtile_context *context);
 
 void* start_socket_server(void *context_ptr) {
-	// TODO: Update this to a context pointer that could send more info
 	struct turtile_context *context = (struct turtile_context *)context_ptr;
 
     int server_socket, client_socket;

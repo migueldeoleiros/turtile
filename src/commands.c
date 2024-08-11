@@ -26,6 +26,12 @@
 #include <string.h>
 #include <wlr/types/wlr_xdg_shell.h>
 
+// Declare functions so that they can be referenced in the list |commands|
+void window_command(char *tokens[], int ntokens, char *response,
+					struct turtile_context *context);
+void window_list_command(char *tokens[], int ntokens, char *response,
+						 struct turtile_context *context);
+
 typedef struct {
     char *cmd_name;
     char *subcmd_name;
@@ -33,26 +39,36 @@ typedef struct {
                    struct turtile_context *context);
 } command_t;
 
-
-//TODO: add documentation comments
-void execute_subcommand(char *tokens[], int ntokens, char *response,
-                        struct turtile_context *context,
-						command_t *subcommands);
-int splitString(char *str, char *tokens[]);
-
-
-//TODO: add documentation comments
-void window_command(char *tokens[], int ntokens, char *response,
-					struct turtile_context *context);
-void window_list_command(char *tokens[], int ntokens, char *response,
-						 struct turtile_context *context);
-
-
+// List of commands with their associated functions 
 static command_t commands[] = {
     {"window", "list", window_list_command},
     {"window", NULL, window_command},
     {NULL, NULL, NULL} // Terminate array with NULLs
 };
+
+/**
+ * Execute a subcommand with the given tokens and context.
+ *
+ * @param tokens       An array of tokens representing the subcommand and
+ *                     its arguments.
+ * @param ntokens      The number of tokens in the tokens array.
+ * @param response     A buffer to store the response to the subcommand.
+ * @param context      A pointer to the turtile context structure.
+ * @param subcommands  A pointer to the subcommands array.
+ */
+void execute_subcommand(char *tokens[], int ntokens, char *response,
+                        struct turtile_context *context,
+						command_t *subcommands);
+
+/**
+ * Splits a string into an array of tokens based on whitespace
+ * characters (spaces, tabs, and newlines).
+ *
+ * @param str    The string to split into tokens.
+ * @param tokens An array to store the tokens.
+ * @return       The number of tokens in the tokens array.
+ */
+int splitString(char *str, char *tokens[]);
 
 void execute_command(char *message, char *response,
                      struct turtile_context *context) {
@@ -71,7 +87,7 @@ void execute_command(char *message, char *response,
             }
         }
     }
-    snprintf(response, MAX_MSG_SIZE, "Unknown command: %s\n", message);
+    snprintf(response, MAX_MSG_SIZE, "FUnknown command: %s\n", message);
 }
 		
 int splitString(char *str, char *tokens[]){
