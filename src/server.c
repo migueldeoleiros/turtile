@@ -118,10 +118,8 @@ void server_redraw_windows(struct turtile_server *server){
 	wl_list_for_each(toplevel, &server->toplevels, link) {
 		if (toplevel->workspace == server->active_workspace) {
 			wlr_scene_node_set_enabled(&toplevel->scene_tree->node, true);
-			wlr_xdg_toplevel_set_suspended(toplevel->xdg_toplevel, false);
 		} else {
 			wlr_scene_node_set_enabled(&toplevel->scene_tree->node, false);
-			wlr_xdg_toplevel_set_suspended(toplevel->xdg_toplevel, true);
 		}
 	}
 

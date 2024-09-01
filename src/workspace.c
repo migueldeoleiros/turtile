@@ -20,23 +20,33 @@
    ----------------------------------------------------------------------------
 */
 
-#ifndef WORKSPACE_H
-#define WORKSPACE_H
+#include "workspace.h"
+#include "src/config.h"
+#include "src/server.h"
+#include "wlr/util/log.h"
+#include <stdlib.h>
+#include <string.h>
+#include <wayland-util.h> 
 
-#include "server.h"
-
-struct turtile_workspace {
-    struct wl_list link;
-
-	char name[100];
-	struct turtile_server *server;
-	// TODO: add associated output for indendent workspaces in each display
-};
-
-// TODO: document functions
 struct turtile_workspace* create_workspace(struct turtile_server *server,
-										  char *name);
-void switch_workspace(struct turtile_workspace *workspace);
-void create_workspaces_from_config(struct turtile_server *server);
+										  char *name){
+	struct turtile_workspace *new_workspace =
+		malloc(sizeof(struct turtile_workspace));
+	strcpy(new_workspace->name, name);
+	new_workspace->server = server;
+	
+    wl_list_insert(&server->workspaces, &new_workspace->link);
+    wlr_log(WLR_INFO, "Create workspace: %s", new_workspace->name);
+	return new_workspace;
+}
 
-#endif // WORKSPACE_H
+void switch_workspace(struct turtile_workspace *workspace){
+	if(workspace == NULL){
+		return;
+	}
+	struct turtile_server *server = workspace->server;
+
+	server->active_workspace = workspace;
+	server_redraw_windows(server);
+}
+
