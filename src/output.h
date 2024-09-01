@@ -25,6 +25,9 @@
 
 #include "server.h"
 
+//forward declare workspace
+struct turtile_workspace;
+
 struct turtile_output {
     struct wl_list link;
     struct turtile_server *server;
@@ -32,6 +35,8 @@ struct turtile_output {
     struct wl_listener frame;
     struct wl_listener request_state;
     struct wl_listener destroy;
+
+	struct turtile_workspace *active_workspace; 
 };
 
 /**

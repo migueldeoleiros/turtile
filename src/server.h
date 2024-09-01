@@ -45,6 +45,9 @@ struct turtile_server {
     struct wl_listener new_xdg_popup;
     struct wl_list toplevels;
 
+    struct wl_list workspaces;
+    struct turtile_workspace *active_workspace;
+
     struct wlr_cursor *cursor;
     struct wlr_xcursor_manager *cursor_mgr;
     struct wl_listener cursor_motion;
