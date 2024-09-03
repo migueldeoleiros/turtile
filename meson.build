@@ -20,18 +20,11 @@ else
 endif
 
 xdg_shell_xml = wlproto_dir / 'stable/xdg-shell/xdg-shell.xml'
-xdg_shell_c = custom_target(
-  'xdg-shell-protocol.c',
-  output: 'xdg-shell-protocol.c',
-  input: xdg_shell_xml,
-  command: [wl_scanner, 'private-code', '@INPUT@', '@OUTPUT@'],
-)
-
 xdg_shell_h = custom_target(
   'xdg-shell-protocol.h',
   output: 'xdg-shell-protocol.h',
   input: xdg_shell_xml,
-  command: [wl_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
+  command: [wl_scanner, 'server-header', '@INPUT@', '@OUTPUT@'],
 )
 
 deps = [
@@ -54,7 +47,6 @@ src = [
   'src/toplevel.c',
   'src/ttcli.c',
   'src/workspace.c',
-  xdg_shell_c,
   xdg_shell_h
 ]
 
