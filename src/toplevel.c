@@ -21,6 +21,7 @@
 */
 
 #include "toplevel.h"
+#include "src/workspace.h"
 #include <stdlib.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_scene.h>
@@ -52,6 +53,8 @@ void focus_toplevel(struct turtile_toplevel *toplevel, struct wlr_surface *surfa
         }
     }
     struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
+	// switch to the right workspace
+	switch_workspace(toplevel->workspace);
     /* Move the toplevel to the front */
     wlr_scene_node_raise_to_top(&toplevel->scene_tree->node);
     wl_list_remove(&toplevel->link);
@@ -101,6 +104,7 @@ void xdg_toplevel_map(struct wl_listener *listener, void *data) {
     /* Called when the surface is mapped, or ready to display on-screen. */
     struct turtile_toplevel *toplevel = wl_container_of(listener, toplevel, map);
 
+	toplevel->workspace = toplevel->server->active_workspace;
     wl_list_insert(&toplevel->server->toplevels, &toplevel->link);
 
     focus_toplevel(toplevel, toplevel->xdg_toplevel->base->surface);

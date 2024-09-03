@@ -45,6 +45,9 @@ struct turtile_server {
     struct wl_listener new_xdg_popup;
     struct wl_list toplevels;
 
+    struct wl_list workspaces;
+    struct turtile_workspace *active_workspace;
+
     struct wlr_cursor *cursor;
     struct wlr_xcursor_manager *cursor_mgr;
     struct wl_listener cursor_motion;
@@ -96,4 +99,11 @@ void server_new_xdg_toplevel(struct wl_listener *listener, void *data);
  */
 void server_new_xdg_popup(struct wl_listener *listener, void *data);
 
+/**
+ * Redraws the windows on the server by enabling or disabling their scene nodes
+ * based on whether they are on the active workspace.
+ *
+ * @param server The server instance whose windows will be redrawn.
+ */
+void server_redraw_windows(struct turtile_server *server);
 #endif // TURTILE_SERVER_H

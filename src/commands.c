@@ -21,7 +21,9 @@
 */
 #include "commands.h"
 #include "socket_server.h"
+#include "src/server.h"
 #include "src/toplevel.h"
+#include "src/workspace.h"
 #include <stdio.h>
 #include <string.h>
 #include <wlr/types/wlr_xdg_shell.h>
@@ -31,7 +33,12 @@ void window_command(char *tokens[], int ntokens, char *response,
 					struct turtile_context *context);
 void window_list_command(char *tokens[], int ntokens, char *response,
 						 struct turtile_context *context);
-
+void workspace_command(char *tokens[], int ntokens, char *response,
+					   struct turtile_context *context);
+void workspace_list_command(char *tokens[], int ntokens, char *response,
+					   struct turtile_context *context);
+void workspace_switch_command(char *tokens[], int ntokens, char *response,
+							  struct turtile_context *context);
 typedef struct {
     char *cmd_name;
     char *subcmd_name;
@@ -43,6 +50,9 @@ typedef struct {
 static command_t commands[] = {
     {"window", "list", window_list_command},
     {"window", NULL, window_command},
+    {"workspace", "list", workspace_list_command},
+    {"workspace", "switch", workspace_switch_command},
+    {"workspace", NULL, workspace_command},
     {NULL, NULL, NULL} // Terminate array with NULLs
 };
 
@@ -126,7 +136,7 @@ void window_list_command(char *tokens[], int ntokens, char *response,
 
             // Calculate remaining buffer space and append the title
             int written = snprintf(response + offset, MAX_MSG_SIZE - offset,
-								   "Window: %s\n", title);
+								   "%s: %s\n", toplevel->workspace->name, title);
             if (written < 0 || (size_t)written >= MAX_MSG_SIZE - offset) {
                 // Stop appending if there's not enough space left in the buffer
                 break;
@@ -134,4 +144,73 @@ void window_list_command(char *tokens[], int ntokens, char *response,
             offset += written;
         }
     }
+}
+
+void workspace_command(char *tokens[], int ntokens, char *response,
+					   struct turtile_context *context){
+	// TODO: use this function as a help for the other workspace subcommands
+    snprintf(response, MAX_MSG_SIZE,
+			 "TODO: placeholder for workspace command help\n");
+}
+
+void workspace_list_command(char *tokens[], int ntokens, char *response,
+							  struct turtile_context *context){
+	struct turtile_server *server = context->server;
+    if (!server || wl_list_empty(&server->workspaces)) {
+		snprintf(response, MAX_MSG_SIZE, "No workspaces found.\n");
+        return;
+    }
+
+    struct turtile_workspace *workspace;
+    size_t offset = 0; // Track the current offset in the buffer
+    int counter = 1;
+
+    wl_list_for_each(workspace, &server->workspaces, link) {
+		const char *name = workspace->name;
+
+		int written;
+		if(workspace == server->active_workspace){
+			written = snprintf(response + offset, MAX_MSG_SIZE - offset,
+								   "workspace %d: %s (active)\n", counter, name);
+		} else{
+			written = snprintf(response + offset, MAX_MSG_SIZE - offset,
+								   "workspace %d: %s\n", counter, name);
+		}
+		if (written < 0 || (size_t)written >= MAX_MSG_SIZE - offset) {
+			break;
+		}
+		offset += written;
+		counter += 1;
+    }
+}
+
+void workspace_switch_command(char *tokens[], int ntokens, char *response,
+							  struct turtile_context *context){
+	struct turtile_server *server = context->server;
+
+	if(ntokens >= 1){
+		char *new_workspace_name = tokens[0];
+		struct turtile_workspace *workspace;
+
+		if(strcmp(server->active_workspace->name, new_workspace_name) == 0){
+            snprintf(response, MAX_MSG_SIZE,
+                     "Already in workspace %s\n", new_workspace_name);
+            return;
+        }
+		wl_list_for_each(workspace, &server->workspaces, link) {
+			if(strcmp(workspace->name, new_workspace_name) == 0){
+				switch_workspace(workspace);
+				snprintf(response, MAX_MSG_SIZE,
+						 "Success: switch to workspace %s\n",
+						 new_workspace_name);
+				return;
+			}
+		}
+		snprintf(response, MAX_MSG_SIZE,
+				 "FError workspace %s not found\n", new_workspace_name);
+
+	} else{
+		snprintf(response, MAX_MSG_SIZE,
+				 "FError missing argument: workspace name\n");
+	}
 }

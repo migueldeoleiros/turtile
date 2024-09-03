@@ -24,6 +24,7 @@
 #define TURTILE_TOPLEVEL_H
 
 #include "cursor.h"
+#include "src/output.h"
 #include <wlr/types/wlr_output.h>
 
 struct turtile_toplevel {
@@ -39,6 +40,8 @@ struct turtile_toplevel {
     struct wl_listener request_resize;
     struct wl_listener request_maximize;
     struct wl_listener request_fullscreen;
+
+	struct turtile_workspace *workspace;
 };
 
 /**

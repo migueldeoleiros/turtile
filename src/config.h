@@ -38,9 +38,15 @@ typedef struct autostart {
     struct wl_list link;
 } turtile_autostart_t;
 
+typedef struct workspace {
+    char *name;
+    struct wl_list link;
+} turtile_workspace_config_t;
+
 typedef struct config {
     struct wl_list keybinds;
     struct wl_list autostart;
+    struct wl_list workspaces;
 } turtile_config_t;
 
 typedef struct {
@@ -50,6 +56,7 @@ typedef struct {
 
 void load_keybinds(config_t *cfg, const char *value);
 void load_autostart(config_t *cfg, const char *value);
+void load_workspaces(config_t *cfg, const char *value);
 
 /**
  * Returns the singleton instance of the configuration.
