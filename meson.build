@@ -34,25 +34,30 @@ deps = [
 	dependency('libconfig'),
 ]
 
-src = [
-  'src/commands.c',
-  'src/config.c',
-  'src/cursor.c',
-  'src/keyboard.c',
-  'src/main.c',
-  'src/output.c',
-  'src/popup.c',
-  'src/server.c',
-  'src/socket_server.c',
-  'src/toplevel.c',
-  'src/ttcli.c',
-  'src/workspace.c',
-  xdg_shell_h
-]
-
 executable(
 	'turtile',
-	src,
+  [
+    'src/commands.c',
+    'src/config.c',
+    'src/cursor.c',
+    'src/keyboard.c',
+    'src/main.c',
+    'src/output.c',
+    'src/popup.c',
+    'src/server.c',
+    'src/socket_server.c',
+    'src/toplevel.c',
+    'src/workspace.c',
+    xdg_shell_h
+  ],
+	dependencies : deps
+)
+
+executable(
+	'ttcli',
+  [
+    'src/ttcli.c',
+  ],
 	dependencies : deps
 )
 
