@@ -37,6 +37,6 @@ struct turtile_workspace {
 struct turtile_workspace* create_workspace(struct turtile_server *server,
 										  char *name);
 void switch_workspace(struct turtile_workspace *workspace);
-void create_workspaces_from_config(struct turtile_server *server);
+struct turtile_workspace* create_workspaces_from_config(struct turtile_server *server);
 
 #endif // WORKSPACE_H

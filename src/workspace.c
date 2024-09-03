@@ -50,3 +50,13 @@ void switch_workspace(struct turtile_workspace *workspace){
 	server_redraw_windows(server);
 }
 
+struct turtile_workspace* create_workspaces_from_config(struct turtile_server *server) {
+    turtile_workspace_config_t *workspace_config;
+
+	struct turtile_workspace *active_workspace;
+
+    wl_list_for_each(workspace_config, &config_get_instance()->workspaces, link) {
+		active_workspace = create_workspace(server, workspace_config->name);
+	}
+	return active_workspace; 
+}

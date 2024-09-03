@@ -200,10 +200,8 @@ int main(int argc, char *argv[]) {
     wl_signal_add(&server.seat->events.request_set_selection,
             &server.request_set_selection);
 
-	/* create_workspaces_from_config(&server); */
 	wl_list_init(&server.workspaces);
-	server.active_workspace = create_workspace(&server, "main");
-	create_workspace(&server, "test");
+	server.active_workspace = create_workspaces_from_config(&server);
 
     /* Add a Unix socket to the Wayland display. */
     const char *socket = wl_display_add_socket_auto(server.wl_display);

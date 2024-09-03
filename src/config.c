@@ -21,6 +21,8 @@
 */
 
 #include "config.h"
+#include "src/server.h"
+#include "src/workspace.h"
 #include "wlr/util/log.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,6 +37,7 @@ static turtile_config_t *config_instance = NULL;
 config_param_t config_params[] = {
     {"keybinds", load_keybinds},
     {"autostart", load_autostart},
+    {"workspaces", load_workspaces},
     // Add more configuration parameters here
 };
 
@@ -149,6 +152,47 @@ void load_autostart(config_t *cfg, const char *value) {
     }
 }
 
+// Helper function to create a new workspace
+static turtile_workspace_config_t *workspace_config_create(const char *name) {
+    turtile_workspace_config_t *workspace =
+		malloc(sizeof(turtile_workspace_config_t));
+    if (!workspace) {
+		wlr_log(WLR_ERROR, "Failed to allocate workspace");
+        return NULL;
+    }
+    workspace->name = strdup(name);
+    if (!workspace->name) {
+        free(workspace);
+        return NULL;
+    }
+    wl_list_init(&workspace->link);
+    return workspace;
+}
+
+void load_workspaces(config_t *cfg, const char *value) {
+    config_setting_t *workspaces_setting = config_lookup(cfg, "workspaces");
+    if (!workspaces_setting) {
+        wlr_log(WLR_ERROR, "Workspaces not found in configuration");
+        return;
+    }
+
+    int count = config_setting_length(workspaces_setting);
+    for (int i = 0; i < count; i++) {
+        const char *name = config_setting_get_string_elem(workspaces_setting, i);
+        if (!name || strlen(name) > 100) {
+            wlr_log(WLR_ERROR, "Workspace name missing or invalid");
+            continue;
+        }
+
+        turtile_workspace_config_t *workspace = workspace_config_create(name);
+        if (workspace) {
+            wl_list_insert(&config_get_instance()->workspaces, &workspace->link);
+        } else {
+            wlr_log(WLR_ERROR, "Failed to create workspace config");
+        }
+    }
+}
+
 void config_load_from_file(const char *filepath) {
     config_t cfg;
     config_init(&cfg);
@@ -178,6 +222,7 @@ turtile_config_t *config_get_instance(void) {
         }
         wl_list_init(&config_instance->keybinds);
         wl_list_init(&config_instance->autostart);
+        wl_list_init(&config_instance->workspaces);
     }
     return config_instance;
 }
@@ -198,6 +243,12 @@ void config_free_instance(void) {
             free(autostart);
         }
 
+        // Free workspaces
+        turtile_workspace_config_t *workspace, *tmp3;
+        wl_list_for_each_safe(workspace, tmp3, &config_instance->workspaces, link) {
+            free(workspace->name);
+            free(workspace);
+        }
         free(config_instance);
         config_instance = NULL;
     }
