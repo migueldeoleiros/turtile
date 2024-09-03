@@ -33,10 +33,32 @@ struct turtile_workspace {
 	// TODO: add associated output for indendent workspaces in each display
 };
 
-// TODO: document functions
+/**
+ * Creates a new workspace and adds it to the server's workspace list.
+ *
+ * @param server The server instance to which the workspace will be added.
+ * @param name The name of the new workspace.
+ *
+ * @return A pointer to the newly created workspace, or NULL if the creation fails.
+ */
 struct turtile_workspace* create_workspace(struct turtile_server *server,
 										  char *name);
+/**
+ * Switches the active workspace to the specified workspace.
+ *
+ * @param workspace The workspace to switch to
+ */
 void switch_workspace(struct turtile_workspace *workspace);
+
+/**
+ * Creates workspaces from the configuration and adds them to the server's
+ * workspace list.
+ *
+ * @param server The server instance to which the workspaces will be added.
+ *
+ * @return A pointer to the last created workspace, or
+ *         NULL if no workspaces were created.
+ */
 struct turtile_workspace* create_workspaces_from_config(struct turtile_server *server);
 
 #endif // WORKSPACE_H

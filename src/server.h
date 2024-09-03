@@ -99,6 +99,11 @@ void server_new_xdg_toplevel(struct wl_listener *listener, void *data);
  */
 void server_new_xdg_popup(struct wl_listener *listener, void *data);
 
-// TODO: document function
+/**
+ * Redraws the windows on the server by enabling or disabling their scene nodes
+ * based on whether they are on the active workspace.
+ *
+ * @param server The server instance whose windows will be redrawn.
+ */
 void server_redraw_windows(struct turtile_server *server);
 #endif // TURTILE_SERVER_H
