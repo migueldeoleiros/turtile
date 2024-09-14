@@ -28,7 +28,8 @@
 #include <libconfig.h>
 
 typedef struct keybind {
-    xkb_keysym_t keys[3];
+	uint32_t mods; // bitmask of modifier keys 
+    xkb_keysym_t key;
     char *cmd;
     struct wl_list link;
 } turtile_keybind_t;

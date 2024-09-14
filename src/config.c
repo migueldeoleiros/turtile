@@ -24,6 +24,7 @@
 #include "src/server.h"
 #include "src/workspace.h"
 #include "wlr/util/log.h"
+#include "wlr/types/wlr_keyboard.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,15 +43,14 @@ config_param_t config_params[] = {
 };
 
 // Helper function to create a new keybind
-static turtile_keybind_t *keybind_create(xkb_keysym_t keys[3], const char *cmd) {
+static turtile_keybind_t *keybind_create(uint32_t mods, xkb_keysym_t key, const char *cmd) {
     turtile_keybind_t *keybind = malloc(sizeof(turtile_keybind_t));
     if (!keybind) {
 		wlr_log(WLR_ERROR, "Failed to allocate keybind");
         return NULL;
     }
-    keybind->keys[0] = keys[0];
-    keybind->keys[1] = keys[1];
-    keybind->keys[2] = keys[2];
+    keybind->mods = mods;
+    keybind->key = key;
     keybind->cmd = strdup(cmd);
     if (!keybind->cmd) {
         free(keybind);
@@ -74,36 +74,59 @@ void load_keybinds(config_t *cfg, const char *value) {
             continue;
         }
 
+		// Fetch and parse modifiers
+        config_setting_t *mod_setting = config_setting_lookup(keybind_setting, "mod");
+        uint32_t mods = 0;
+        if (mod_setting) {
+            int mod_count = config_setting_length(mod_setting);
+            for (int j = 0; j < mod_count; j++) {
+                const char *mod_str = config_setting_get_string_elem(mod_setting, j);
+                if (!mod_str) {
+                    wlr_log(WLR_ERROR, "Invalid modifier string in configuration");
+                    continue;
+                }
+
+                // Parse modifier strings into bitmask
+                if (strstr(mod_str, "shift")) {
+                    mods |= WLR_MODIFIER_SHIFT;
+                } else if (strstr(mod_str, "ctrl")) {
+                    mods |= WLR_MODIFIER_CTRL;
+                } else if (strstr(mod_str, "alt")) {
+                    mods |= WLR_MODIFIER_ALT;
+                } else if (strstr(mod_str, "mod4")) {
+                    mods |= WLR_MODIFIER_LOGO;
+                } else if (strstr(mod_str, "mod2")) {
+                    mods |= WLR_MODIFIER_MOD2;
+                } else {
+                    wlr_log(WLR_ERROR, "Unknown modifier '%s' in configuration", mod_str);
+                }
+            }
+        }
+
+        const char *key_str;
+        if (!config_setting_lookup_string(keybind_setting, "key", &key_str)) {
+            wlr_log(WLR_ERROR, "Keybind missing command in configuration");
+            continue;
+        }
+		if (!key_str) {
+			wlr_log(WLR_ERROR, "Keybind has an invalid key string");
+			continue;
+		}
+		
+		// Convert key string to keysym
+		xkb_keysym_t key = xkb_keysym_from_name(key_str, XKB_KEYSYM_CASE_INSENSITIVE);
+		if (key == XKB_KEY_NoSymbol) {
+			wlr_log(WLR_ERROR, "Invalid key name '%s' in configuration", key_str);
+			continue;
+		}
+
         const char *cmd;
         if (!config_setting_lookup_string(keybind_setting, "cmd", &cmd)) {
             wlr_log(WLR_ERROR, "Keybind missing command in configuration");
             continue;
         }
 
-        config_setting_t *key_setting = config_setting_lookup(keybind_setting, "key");
-        if (!key_setting || config_setting_length(key_setting) != 3) {
-            wlr_log(WLR_ERROR, "Keybind has an invalid key array");
-            continue;
-        }
-
-        xkb_keysym_t keys[3];
-        for (int j = 0; j < 3; j++) {
-            const char *key_str = config_setting_get_string_elem(key_setting, j);
-            if (!key_str) {
-                wlr_log(WLR_ERROR, "Keybind has an invalid key string");
-                continue;
-            }
-
-            // Convert key string to keysym
-            xkb_keysym_t keysym = xkb_keysym_from_name(key_str, XKB_KEYSYM_CASE_INSENSITIVE);
-            if (keysym == XKB_KEY_NoSymbol) {
-                wlr_log(WLR_ERROR, "Invalid key name '%s' in configuration", key_str);
-                continue;
-            }
-            keys[j] = keysym;
-        }
-
-        turtile_keybind_t *keybind = keybind_create(keys, cmd);
+        turtile_keybind_t *keybind = keybind_create(mods, key, cmd);
         if (keybind) {
             wl_list_insert(&config_get_instance()->keybinds, &keybind->link);
         } else {
