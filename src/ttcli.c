@@ -37,7 +37,7 @@
 int main(int argc, char *argv[]) {
     int socket_fd;
     struct sockaddr_un socket_address;
-    char message[MAX_MSG_SIZE], response[MAX_MSG_SIZE];
+    char message[MAX_MSG_SIZE];
 
     if (argc < 2) {
 		// TODO: replace with help function
@@ -79,24 +79,35 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    // Receive response
-    int response_len = 0;
-    while (1) {
-        int bytes_received = recv(socket_fd, response + response_len,
-								  MAX_MSG_SIZE - response_len - 1, 0);
+    // Receive response size
+    ssize_t response_size;
+    if (recv(socket_fd, &response_size, sizeof(response_size), 0) <= 0) {
+        perror("Failed to receive response size");
+        return EXIT_FAILURE;
+    }
+
+    // Allocate buffer for full response
+    char *response = malloc(response_size + 1);
+    if (!response) {
+        perror("Failed to allocate memory for response");
+        return EXIT_FAILURE;
+    }
+
+    // Receive full response
+    ssize_t total_received = 0;
+    while (total_received < response_size) {
+        ssize_t bytes_received = recv(socket_fd, response + total_received,
+                                      response_size - total_received, 0);
         if (bytes_received <= 0) {
             break;
         }
-        response_len += bytes_received;
-        response[response_len] = '\0';
-        if (response[0] == 'F') { // Failure message
-            fprintf(stderr, "%s", response + 1);
-            return EXIT_FAILURE;
-        } else {
-            fprintf(stdout, "%s", response);
-        }
+        total_received += bytes_received;
     }
+    response[total_received] = '\0'; // Null-terminate the response
 
+    printf("%s", response);
+
+    free(response);
     close(socket_fd);
     return EXIT_SUCCESS;
 }
