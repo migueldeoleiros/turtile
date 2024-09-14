@@ -29,9 +29,13 @@
 #include <wlr/types/wlr_xdg_shell.h>
 
 // Declare functions so that they can be referenced in the list |commands|
+void exit_command(char *tokens[], int ntokens, char *response,
+					struct turtile_context *context);
 void window_command(char *tokens[], int ntokens, char *response,
 					struct turtile_context *context);
 void window_list_command(char *tokens[], int ntokens, char *response,
+						 struct turtile_context *context);
+void window_switch_command(char *tokens[], int ntokens, char *response,
 						 struct turtile_context *context);
 void workspace_command(char *tokens[], int ntokens, char *response,
 					   struct turtile_context *context);
@@ -48,7 +52,9 @@ typedef struct {
 
 // List of commands with their associated functions 
 static command_t commands[] = {
+    {"exit", NULL, exit_command},
     {"window", "list", window_list_command},
+    {"window", "switch", window_switch_command},
     {"window", NULL, window_command},
     {"workspace", "list", workspace_list_command},
     {"workspace", "switch", workspace_switch_command},
@@ -111,6 +117,13 @@ int splitString(char *str, char *tokens[]){
     return i;
 }
 
+void exit_command(char *tokens[], int ntokens, char *response,
+					struct turtile_context *context){
+	struct turtile_server *server = context->server;
+    wl_display_terminate(server->wl_display);
+    snprintf(response, MAX_MSG_SIZE, "Exiting turtile\n");
+}
+
 void window_command(char *tokens[], int ntokens, char *response,
 					struct turtile_context *context){
 	// TODO: use this function as a help for the other window subcommands
@@ -144,6 +157,23 @@ void window_list_command(char *tokens[], int ntokens, char *response,
             offset += written;
         }
     }
+}
+
+void window_switch_command(char *tokens[], int ntokens, char *response,
+					struct turtile_context *context){
+	// Cycle to the next toplevel
+	// TODO: add option to switch window by name
+	struct turtile_server *server = context->server;
+
+	if (wl_list_length(&server->toplevels) < 2) {
+		snprintf(response, MAX_MSG_SIZE, "FOnly one current window open\n");
+		return;
+	}
+	struct turtile_toplevel *next_toplevel =
+		wl_container_of(server->toplevels.prev, next_toplevel, link);
+	focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
+    snprintf(response, MAX_MSG_SIZE, "Switching focus to: %s\n",
+			 next_toplevel->xdg_toplevel->title);
 }
 
 void workspace_command(char *tokens[], int ntokens, char *response,

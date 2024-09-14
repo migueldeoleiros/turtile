@@ -51,31 +51,19 @@ void keyboard_handle_modifiers(
 bool handle_keybinding(struct turtile_server *server, uint32_t modifiers,
 					   xkb_keysym_t sym) {
     turtile_keybind_t *keybind;
-    switch (sym) {
-    case XKB_KEY_Escape:
-        wl_display_terminate(server->wl_display);
-        break;
-    case XKB_KEY_F1:
-        /* Cycle to the next toplevel */
-        if (wl_list_length(&server->toplevels) < 2) {
-            break;
-        }
-        struct turtile_toplevel *next_toplevel =
-            wl_container_of(server->toplevels.prev, next_toplevel, link);
-        focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
-        break;
-    default:
-        wl_list_for_each(keybind, &config_get_instance()->keybinds, link) {
-            if (keybind->keys[0] == sym || keybind->keys[1] == sym || keybind->keys[2] == sym) {
-                wlr_log(WLR_INFO, "Executing command: %s", keybind->cmd);
-                if (fork() == 0)
-			        execl("/bin/sh", "/bin/sh", "-c", keybind->cmd, (void *)NULL);
-                return true;
-            }
-        }
-        return false;
-    }
-    return true;
+	wl_list_for_each(keybind, &config_get_instance()->keybinds, link) {
+		// Check if both the key and the modifiers match
+		wlr_log(WLR_INFO, "keybind: %d %d", keybind->mods, keybind->key);
+		wlr_log(WLR_INFO, "mods: %d", modifiers);
+		wlr_log(WLR_INFO, "key: %d", sym);
+		if ((keybind->mods == modifiers) && (keybind->key == sym)) {
+			wlr_log(WLR_INFO, "Executing command: %s", keybind->cmd);
+			if (fork() == 0)
+				execl("/bin/sh", "/bin/sh", "-c", keybind->cmd, (void *)NULL);
+			return true;
+		}
+	}
+	return false;
 }
 
 void keyboard_handle_key(
