@@ -92,12 +92,15 @@ void handle_client(int client_socket, struct turtile_context *context) {
     ssize_t bytes_received = recv(client_socket, buffer, sizeof(buffer) - 1, 0);
     if (bytes_received > 0) {
         buffer[bytes_received] = '\0'; // Null-terminate the command string
-
         printf("Received command: %s\n", buffer);
 
         execute_command(buffer, response, context);
+        ssize_t response_size = strlen(response);
 
-        send(client_socket, response, strlen(response), 0);
+        // send size
+        send(client_socket, &response_size, sizeof(response_size), 0);
+        // send response
+        send(client_socket, response, response_size, 0);
     }
 
     close(client_socket);
