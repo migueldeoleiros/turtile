@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <wlr/types/wlr_xdg_shell.h>
+#include <json-c/json.h>
 
 // Declare functions so that they can be referenced in the list |commands|
 void exit_command(char *tokens[], int ntokens, char *response,
@@ -103,7 +104,7 @@ void execute_command(char *message, char *response,
             }
         }
     }
-    snprintf(response, MAX_MSG_SIZE, "FUnknown command: %s\n", message);
+    snprintf(response, MAX_MSG_SIZE, "{\"error\": \"Unknown command %s\"}", message);
 }
 		
 int splitString(char *str, char *tokens[]){
@@ -132,31 +133,35 @@ void window_command(char *tokens[], int ntokens, char *response,
 }
 
 void window_list_command(char *tokens[], int ntokens, char *response,
-						 struct turtile_context *context){
-	struct turtile_server *server = context->server;
+						 struct turtile_context *context) {
+    struct turtile_server *server = context->server;
     if (!server || wl_list_empty(&server->toplevels)) {
-		snprintf(response, MAX_MSG_SIZE, "No windows found.\n");
+        response = strdup("{\"error\": \"No windows found\"}\n");
         return;
     }
 
-    struct turtile_toplevel *toplevel;
-    size_t offset = 0; // Track the current offset in the buffer
+    struct json_object *json_response = json_object_new_array();
 
+    struct turtile_toplevel *toplevel;
+    
     wl_list_for_each(toplevel, &server->toplevels, link) {
         if (toplevel->xdg_toplevel) {
             const char *title = toplevel->xdg_toplevel->title ?
-                toplevel->xdg_toplevel->title : "Unnamed";
+				toplevel->xdg_toplevel->title : "Unnamed";
 
-            // Calculate remaining buffer space and append the title
-            int written = snprintf(response + offset, MAX_MSG_SIZE - offset,
-								   "%s: %s\n", toplevel->workspace->name, title);
-            if (written < 0 || (size_t)written >= MAX_MSG_SIZE - offset) {
-                // Stop appending if there's not enough space left in the buffer
-                break;
-            }
-            offset += written;
+            // Create a JSON object for each window and populate its fields
+            struct json_object *json_window = json_object_new_object();
+            json_object_object_add(json_window, "title",
+								   json_object_new_string(title));
+            json_object_object_add(json_window, "workspace",
+								   json_object_new_string(toplevel->workspace->name));
+            
+            json_object_array_add(json_response, json_window);
         }
     }
+
+    strcpy(response, json_object_to_json_string(json_response));
+    json_object_put(json_response);
 }
 
 void window_switch_command(char *tokens[], int ntokens, char *response,
@@ -166,13 +171,13 @@ void window_switch_command(char *tokens[], int ntokens, char *response,
 	struct turtile_server *server = context->server;
 
 	if (wl_list_length(&server->toplevels) < 2) {
-		snprintf(response, MAX_MSG_SIZE, "FOnly one current window open\n");
+        response = strdup("{\"error\": \"Only one current window open\"}");
 		return;
 	}
 	struct turtile_toplevel *next_toplevel =
 		wl_container_of(server->toplevels.prev, next_toplevel, link);
 	focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
-    snprintf(response, MAX_MSG_SIZE, "Switching focus to: %s\n",
+    snprintf(response, MAX_MSG_SIZE, "{\"success\": \"switching focus to: %s\"}",
 			 next_toplevel->xdg_toplevel->title);
 }
 
@@ -184,34 +189,32 @@ void workspace_command(char *tokens[], int ntokens, char *response,
 }
 
 void workspace_list_command(char *tokens[], int ntokens, char *response,
-							  struct turtile_context *context){
-	struct turtile_server *server = context->server;
+                            struct turtile_context *context) {
+    struct turtile_server *server = context->server;
     if (!server || wl_list_empty(&server->workspaces)) {
-		snprintf(response, MAX_MSG_SIZE, "No workspaces found.\n");
+        response = strdup("{\"error\": \"No workspaces found\"}\n");
         return;
     }
 
+    struct json_object *json_response = json_object_new_array();
+
     struct turtile_workspace *workspace;
-    size_t offset = 0; // Track the current offset in the buffer
-    int counter = 1;
-
     wl_list_for_each(workspace, &server->workspaces, link) {
-		const char *name = workspace->name;
+        const char *name = workspace->name;
+        bool is_active = (workspace == server->active_workspace);
 
-		int written;
-		if(workspace == server->active_workspace){
-			written = snprintf(response + offset, MAX_MSG_SIZE - offset,
-								   "workspace %d: %s (active)\n", counter, name);
-		} else{
-			written = snprintf(response + offset, MAX_MSG_SIZE - offset,
-								   "workspace %d: %s\n", counter, name);
-		}
-		if (written < 0 || (size_t)written >= MAX_MSG_SIZE - offset) {
-			break;
-		}
-		offset += written;
-		counter += 1;
+        // Create a JSON object for each workspace and populate its fields
+        struct json_object *json_workspace = json_object_new_object();
+        json_object_object_add(json_workspace, "name",
+                               json_object_new_string(name));
+        json_object_object_add(json_workspace, "active",
+                               json_object_new_boolean(is_active));
+
+        json_object_array_add(json_response, json_workspace);
     }
+
+    strcpy(response, json_object_to_json_string(json_response));
+    json_object_put(json_response);
 }
 
 void workspace_switch_command(char *tokens[], int ntokens, char *response,
@@ -224,23 +227,24 @@ void workspace_switch_command(char *tokens[], int ntokens, char *response,
 
 		if(strcmp(server->active_workspace->name, new_workspace_name) == 0){
             snprintf(response, MAX_MSG_SIZE,
-                     "Already in workspace %s\n", new_workspace_name);
+                     "{\"success\": \"already in workspace %s\"}\n",
+					 new_workspace_name);
             return;
         }
 		wl_list_for_each(workspace, &server->workspaces, link) {
 			if(strcmp(workspace->name, new_workspace_name) == 0){
 				switch_workspace(workspace);
 				snprintf(response, MAX_MSG_SIZE,
-						 "Success: switch to workspace %s\n",
+						 "{\"success\": \"switch to workspace %s\"}",
 						 new_workspace_name);
 				return;
 			}
 		}
 		snprintf(response, MAX_MSG_SIZE,
-				 "FError workspace %s not found\n", new_workspace_name);
+				 "{\"error\": \"workspace %s not found\"}", new_workspace_name);
 
 	} else{
 		snprintf(response, MAX_MSG_SIZE,
-				 "FError missing argument: workspace name\n");
+				 "{\"error\": \"missing argument: workspace name\"}");
 	}
 }
