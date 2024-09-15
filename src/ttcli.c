@@ -24,26 +24,95 @@
    ----------------------------------------------------------------------------
 */
 
+#include "json_tokener.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <json-c/json.h>
 
 #define MAX_MSG_SIZE 1024
 #define SOCKET_PATH "/tmp/turtile_socket"
+
+void print_json_object(json_object *obj, int indent) {
+    enum json_type type;
+
+    type = json_object_get_type(obj);
+    switch (type) {
+        case json_type_string:
+            printf("%s\n", json_object_get_string(obj));
+            break;
+        case json_type_int:
+            printf("%d\n", json_object_get_int(obj));
+            break;
+        case json_type_double:
+            printf("%f\n", json_object_get_double(obj));
+            break;
+        case json_type_boolean:
+            printf("%s\n", json_object_get_boolean(obj) ? "true" : "false");
+            break;
+	    case json_type_object: {
+            json_object_object_foreach(obj, key, obj2) {
+                printf("%*s%s: ", indent * 2, "", key);
+                print_json_object(obj2, indent + 1);
+            }
+            printf("%*s\n", indent * 2, "");
+            break;
+		
+	    }
+     	case json_type_array: {
+            int arraylen = json_object_array_length(obj);
+            for (int i = 0; i < arraylen; i++) {
+                printf("%*s", indent * 2, "");
+                print_json_object(json_object_array_get_idx(obj, i), indent + 1);
+            }
+            printf("%*s", indent * 2, "");
+            break;
+        }
+        default:
+            printf("Unknown type\n");
+            break;
+    }
+}
+
+void process_command_output(const char *str, bool human_readable) {
+    struct json_object *parsed_json = json_tokener_parse(str);
+
+    if (human_readable && parsed_json != NULL) {
+        print_json_object(parsed_json, 0);
+    } else {
+        printf("%s", str);
+    }
+
+    json_object_put(parsed_json);
+}
 
 int main(int argc, char *argv[]) {
     int socket_fd;
     struct sockaddr_un socket_address;
     char message[MAX_MSG_SIZE];
+    bool human_readable = true; // Flag to track if --json is passed
 
     if (argc < 2) {
-		// TODO: replace with help function
-        fprintf(stderr, "No arguments given");
+        // TODO: replace with help function
+        fprintf(stderr, "No arguments given\n");
         return EXIT_FAILURE;
     }
+
+    // Check if the first argument is "--json"
+    int arg_start = 1;
+    if (strcmp(argv[1], "--json") == 0) {
+        human_readable = false;
+        arg_start = 2; // Skip the --json argument
+        if (argc < 3) {
+            fprintf(stderr, "No command given after --json\n");
+            return EXIT_FAILURE;
+        }
+    }
+
     // Set up socket address
     socket_address.sun_family = AF_UNIX;
     strcpy(socket_address.sun_path, SOCKET_PATH);
@@ -62,14 +131,14 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    // Build message from arguments
+    // Build message from arguments, skipping --json if it was present
     int message_len = 0;
-    for (int i = 1; i < argc; i++) {
-        if (i > 1){ // Add spaces
+    for (int i = arg_start; i < argc; i++) {
+        if (i > arg_start) { // Add spaces between arguments
             message_len += snprintf(message + message_len,
 									MAX_MSG_SIZE - message_len, " ");
-		}
-		message_len += snprintf(message + message_len,
+        }
+        message_len += snprintf(message + message_len,
 								MAX_MSG_SIZE - message_len, "%s", argv[i]);
     }
 
@@ -105,7 +174,7 @@ int main(int argc, char *argv[]) {
     }
     response[total_received] = '\0'; // Null-terminate the response
 
-    printf("%s", response);
+    process_command_output(response, human_readable);
 
     free(response);
     close(socket_fd);
