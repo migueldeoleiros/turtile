@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Meson and Ninja
+      run: |
+        sudo apt update
+        sudo apt install -y meson ninja-build gcc pkg-config
+
+    - name: Configure the project with Meson
+      run: meson setup build
+
+    - name: Build the project
+      run: meson compile -C build
