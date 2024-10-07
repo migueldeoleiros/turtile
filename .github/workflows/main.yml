@@ -16,10 +16,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Meson and Ninja
+    - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y meson ninja-build gcc pkg-config
+        sudo apt install -y meson ninja-build gcc pkg-config \
+        wayland-protocols libwayland-dev libxkbcommon-dev \
+        libwlroots-dev libconfig-dev libjson-c-dev libwlroots-dev
 
     - name: Configure the project with Meson
       run: meson setup build
