@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y meson ninja-build gcc cmake pkg-config \
+        libxkbcommon-dev libconfig-dev libjson-c-dev
+
+    - name: Install wayland-server
+      run: |
+        git clone --branch 1.23 https://gitlab.freedesktop.org/wayland/wayland.git
+        cd wayland
+        meson setup build -Ddocumentation=false
+        sudo ninja -C build install
+        cd ..
+
+    - name: Install libdrm
+      run: |
+        git clone --branch libdrm-2.4.123 https://gitlab.freedesktop.org/mesa/drm.git
+        cd drm
+        meson setup build
+        sudo ninja -C build install
+        cd ..
+
+    - name: Install pixman
+      run: |
+        git clone --branch pixman-0.42.2 https://gitlab.freedesktop.org/pixman/pixman
+        cd pixman
+        meson setup build
+        sudo ninja -C build install
+        cd ..
+
+    - name: Install wayland-protocols
+      run: |
+        git clone --branch 1.35 https://gitlab.freedesktop.org/wayland/wayland-protocols.git
+        cd wayland-protocols
+        meson setup build
+        sudo ninja -C build install
+        cd ..
+
+    - name: Install wlroots
+      run: |
+        git clone --branch 0.18 https://gitlab.freedesktop.org/wlroots/wlroots
+        cd wlroots
+        meson setup build/
+        ninja -C build/
+        sudo ninja -C build/ install
+        cd ..
+
+    - name: Configure the project with Meson
+      run: meson setup build
+
+    - name: Build the project
+      run: meson compile -C build
