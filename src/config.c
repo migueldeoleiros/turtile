@@ -217,10 +217,16 @@ void load_workspaces(config_t *cfg, const char *value) {
 }
 
 void config_load_from_file(const char *filepath) {
+    char full_path[256];
+    realpath(filepath, full_path);
+    wlr_log(WLR_INFO, "Attempting to load config from: %s\n", full_path);
+
     config_t cfg;
     config_init(&cfg);
     if (!config_read_file(&cfg, filepath)) {
         wlr_log(WLR_ERROR, "Error reading configuration file: %s", filepath);
+		wlr_log(WLR_ERROR, "Error on line %d: %s\n", config_error_line(&cfg),
+				config_error_text(&cfg));
         config_destroy(&cfg);
         return;
     }
