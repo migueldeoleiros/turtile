@@ -37,6 +37,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <wlr/backend.h>
+#include <wlr/backend/headless.h>
 #include <wlr/render/allocator.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_data_device.h>
@@ -77,7 +78,15 @@ int main(int argc, char *argv[]) {
      * output hardware. The autocreate option will choose the most suitable
      * backend based on the current environment, such as opening an X11 window
      * if an X11 server is running. */
-    server.backend = wlr_backend_autocreate(wl_display_get_event_loop(server.wl_display), NULL);
+	const char *backend = getenv("TURTILE_BACKEND");
+
+	if (backend && strcmp(backend, "headless") == 0) {
+		server.backend = wlr_headless_backend_create(wl_display_get_event_loop(
+														 server.wl_display));
+	} else {
+		server.backend = wlr_backend_autocreate(wl_display_get_event_loop(
+													server.wl_display), NULL);
+	}
     if (server.backend == NULL) {
         wlr_log(WLR_ERROR, "failed to create wlr_backend");
         return 1;

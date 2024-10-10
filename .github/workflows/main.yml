@@ -20,7 +20,7 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y meson ninja-build gcc cmake pkg-config \
-        libxkbcommon-dev libconfig-dev libjson-c-dev
+        libxkbcommon-dev libconfig-dev libjson-c-dev python3 weston
 
     - name: Install wayland-server
       run: |
@@ -68,3 +68,12 @@ jobs:
 
     - name: Build the project
       run: meson compile -C build
+
+    - name: Run functional tests
+      run: |
+        mkdir -p $XDG_RUNTIME_DIR
+        TURTILE_BACKEND=headless ./build/turtile -c tests/test.cfg &
+        sleep 5
+        python tests/test.py
+      env:
+        XDG_RUNTIME_DIR: /tmp/xdg_runtime_dir
