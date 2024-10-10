@@ -26,4 +26,5 @@ if __name__ == '__main__':
     test_workspace_list('[ { "name": "main", "active": true }, { "name": "test", "active": false } ]')
     test_window_list('[ { "title": "simple-egl", "workspace": "main" }, { "title": "simple-damage", "workspace": "main" } ]')
     test_workspace_switch('test')
+    test_workspace_list('[ { "name": "main", "active": false }, { "name": "test", "active": true } ]')
     run_ttcli('exit')
