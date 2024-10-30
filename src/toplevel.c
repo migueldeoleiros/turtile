@@ -23,6 +23,7 @@
 #include "toplevel.h"
 #include "src/server.h"
 #include "src/workspace.h"
+#include "wlr/util/log.h"
 #include <stdlib.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_scene.h>
@@ -136,7 +137,7 @@ void xdg_toplevel_unmap(struct wl_listener *listener, void *data) {
     /* Called when the surface is unmapped, and should no longer be shown. */
     struct turtile_toplevel *toplevel = wl_container_of(listener, toplevel, unmap);
 
-    /* Reset the cursor mode if the grabbed toplevel was unmapped. */
+    /* Reset the cursor mode and focus if the grabbed toplevel was unmapped. */
     if (toplevel == toplevel->server->grabbed_toplevel) {
         reset_cursor_mode(toplevel->server);
 
@@ -145,6 +146,7 @@ void xdg_toplevel_unmap(struct wl_listener *listener, void *data) {
     }
 
     wl_list_remove(&toplevel->link);
+    wl_list_remove(&toplevel->flink);
 }
 
 void xdg_toplevel_commit(struct wl_listener *listener, void *data) {
