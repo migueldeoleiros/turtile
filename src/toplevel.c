@@ -115,7 +115,9 @@ void toplevel_resize(
 
 	wlr_scene_node_set_position(&toplevel->scene_tree->node,
 								toplevel->geometry.x, toplevel->geometry.y);
-	wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, toplevel->geometry.width,
+
+	if (strcmp(getenv("TURTILE_BACKEND"), "headless") != 0)
+		wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, toplevel->geometry.width,
 							  toplevel->geometry.height);
 }
 
