@@ -23,6 +23,7 @@
 #include "workspace.h"
 #include "src/config.h"
 #include "src/server.h"
+#include "src/toplevel.h"
 #include "wlr/util/log.h"
 #include <stdlib.h>
 #include <string.h>
@@ -45,8 +46,12 @@ void switch_workspace(struct turtile_workspace *workspace){
 		return;
 	}
 	struct turtile_server *server = workspace->server;
-
 	server->active_workspace = workspace;
+
+	struct turtile_toplevel *newfocus = get_first_toplevel(server);
+	if(newfocus != NULL)
+		focus_toplevel(newfocus, newfocus->xdg_toplevel->base->surface);
+
 	server_redraw_windows(server);
 }
 

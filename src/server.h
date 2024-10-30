@@ -44,6 +44,7 @@ struct turtile_server {
     struct wl_listener new_xdg_toplevel;
     struct wl_listener new_xdg_popup;
     struct wl_list toplevels;
+    struct wl_list focus_toplevels;
 
     struct wl_list workspaces;
     struct turtile_workspace *active_workspace;
@@ -101,7 +102,7 @@ void server_new_xdg_popup(struct wl_listener *listener, void *data);
 
 /**
  * Redraws the windows on the server by enabling or disabling their scene nodes
- * based on whether they are on the active workspace.
+ * based on whether they are on the active workspace, and run tiling script.
  *
  * @param server The server instance whose windows will be redrawn.
  */

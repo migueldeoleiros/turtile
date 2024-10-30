@@ -20,7 +20,10 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y meson ninja-build gcc cmake pkg-config \
-        libxkbcommon-dev libconfig-dev libjson-c-dev python3 weston
+        libxkbcommon-dev libconfig-dev libjson-c-dev 
+
+    - name: Install test dependencies
+      run: sudo apt-get install -y xvfb python3 weston
 
     - name: Install wayland-server
       run: |
@@ -72,7 +75,7 @@ jobs:
     - name: Run functional tests
       run: |
         mkdir -p $XDG_RUNTIME_DIR
-        TURTILE_BACKEND=headless ./build/turtile -c tests/test.cfg &
+        TURTILE_BACKEND=headless xvfb-run --auto-servernum --server-args='-screen 0 1024x768x24' ./build/turtile -c tests/test.cfg &
         sleep 5
         python tests/test.py
       env:

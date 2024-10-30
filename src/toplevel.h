@@ -26,12 +26,15 @@
 #include "cursor.h"
 #include "src/output.h"
 #include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_xdg_shell.h>
 
 struct turtile_toplevel {
     struct wl_list link;
+    struct wl_list flink;
     struct turtile_server *server;
     struct wlr_xdg_toplevel *xdg_toplevel;
     struct wlr_scene_tree *scene_tree;
+    struct wlr_box geometry;
     struct wl_listener map;
     struct wl_listener unmap;
     struct wl_listener commit;
@@ -53,6 +56,15 @@ struct turtile_toplevel {
  */
 void focus_toplevel(struct turtile_toplevel *toplevel,
                            struct wlr_surface *surface);
+/**
+ * Retrieves the first toplevel on the active workspace of the given server.
+ * If no such toplevel is found, NULL is returned.
+
+ * @param server The turtile server to search for the toplevel on.
+ * @return A pointer to the first toplevel on the active workspace,
+ *	       or NULL if no such toplevel is found.
+ */
+struct turtile_toplevel *get_first_toplevel(struct turtile_server *server);
 
 /**
  * Given a server, layout coordinates, and optional surface and position
@@ -73,6 +85,14 @@ void focus_toplevel(struct turtile_toplevel *toplevel,
 struct turtile_toplevel *desktop_toplevel_at(
         struct turtile_server *server, double lx, double ly,
         struct wlr_surface **surface, double *sx, double *sy);
+/**
+ * Resizes the given toplevel to the specified geometry.
+ *
+ * @param toplevel The turtile toplevel to resize.
+ * @param geometry The new geometry for the toplevel.
+ */
+void toplevel_resize(
+	struct turtile_toplevel *toplevel, struct wlr_box geometry);
 
 /**
  * Called when the surface is mapped, or ready to display on-screen.

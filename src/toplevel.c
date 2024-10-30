@@ -21,12 +21,12 @@
 */
 
 #include "toplevel.h"
+#include "src/server.h"
 #include "src/workspace.h"
 #include <stdlib.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xcursor_manager.h>
-#include <wlr/types/wlr_xdg_shell.h>
 
 void focus_toplevel(struct turtile_toplevel *toplevel, struct wlr_surface *surface) {
     /* Note: this function only deals with keyboard focus. */
@@ -54,11 +54,11 @@ void focus_toplevel(struct turtile_toplevel *toplevel, struct wlr_surface *surfa
     }
     struct wlr_keyboard *keyboard = wlr_seat_get_keyboard(seat);
 	// switch to the right workspace
-	switch_workspace(toplevel->workspace);
+	/* switch_workspace(toplevel->workspace); */
+	server->active_workspace = toplevel->workspace;
     /* Move the toplevel to the front */
-    wlr_scene_node_raise_to_top(&toplevel->scene_tree->node);
-    wl_list_remove(&toplevel->link);
-    wl_list_insert(&server->toplevels, &toplevel->link);
+	wl_list_remove(&toplevel->flink);
+	wl_list_insert(&server->focus_toplevels, &toplevel->flink);
     /* Activate the new surface */
     wlr_xdg_toplevel_set_activated(toplevel->xdg_toplevel, true);
     /*
@@ -70,6 +70,15 @@ void focus_toplevel(struct turtile_toplevel *toplevel, struct wlr_surface *surfa
         wlr_seat_keyboard_notify_enter(seat, toplevel->xdg_toplevel->base->surface,
             keyboard->keycodes, keyboard->num_keycodes, &keyboard->modifiers);
     }
+	server_redraw_windows(server);
+}
+
+struct turtile_toplevel *get_first_toplevel(struct turtile_server *server) {
+	struct turtile_toplevel *toplevel;
+	wl_list_for_each(toplevel, &server->focus_toplevels, flink)
+		if (toplevel->workspace == server->active_workspace)
+			return toplevel;
+	return NULL;
 }
 
 struct turtile_toplevel *desktop_toplevel_at(
@@ -100,12 +109,23 @@ struct turtile_toplevel *desktop_toplevel_at(
     return tree->node.data;
 }
 
+void toplevel_resize(
+        struct turtile_toplevel *toplevel, struct wlr_box geometry) {
+	toplevel->geometry = geometry;
+
+	wlr_scene_node_set_position(&toplevel->scene_tree->node,
+								toplevel->geometry.x, toplevel->geometry.y);
+	wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, toplevel->geometry.width,
+							  toplevel->geometry.height);
+}
+
 void xdg_toplevel_map(struct wl_listener *listener, void *data) {
     /* Called when the surface is mapped, or ready to display on-screen. */
     struct turtile_toplevel *toplevel = wl_container_of(listener, toplevel, map);
 
 	toplevel->workspace = toplevel->server->active_workspace;
     wl_list_insert(&toplevel->server->toplevels, &toplevel->link);
+    wl_list_insert(&toplevel->server->focus_toplevels, &toplevel->flink);
 
     focus_toplevel(toplevel, toplevel->xdg_toplevel->base->surface);
 }
@@ -117,6 +137,9 @@ void xdg_toplevel_unmap(struct wl_listener *listener, void *data) {
     /* Reset the cursor mode if the grabbed toplevel was unmapped. */
     if (toplevel == toplevel->server->grabbed_toplevel) {
         reset_cursor_mode(toplevel->server);
+
+		struct turtile_toplevel *newfocus = get_first_toplevel(toplevel->server);
+		focus_toplevel(newfocus, newfocus->xdg_toplevel->base->surface);
     }
 
     wl_list_remove(&toplevel->link);
@@ -148,6 +171,7 @@ void xdg_toplevel_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&toplevel->request_maximize.link);
     wl_list_remove(&toplevel->request_fullscreen.link);
 
+	server_redraw_windows(toplevel->server);
     free(toplevel);
 }
 
