@@ -74,6 +74,14 @@ void focus_toplevel(struct turtile_toplevel *toplevel,
 struct turtile_toplevel *desktop_toplevel_at(
         struct turtile_server *server, double lx, double ly,
         struct wlr_surface **surface, double *sx, double *sy);
+/**
+ * Resizes the given toplevel to the specified geometry.
+ *
+ * @param toplevel The turtile toplevel to resize.
+ * @param geometry The new geometry for the toplevel.
+ */
+void toplevel_resize(
+	struct turtile_toplevel *toplevel, struct wlr_box geometry);
 
 /**
  * Called when the surface is mapped, or ready to display on-screen.
@@ -84,8 +92,6 @@ struct turtile_toplevel *desktop_toplevel_at(
  */
 void xdg_toplevel_map(struct wl_listener *listener, void *data);
 
-void toplevel_resize(
-	struct turtile_toplevel *toplevel, struct wlr_box geometry);
 /**
  * Called when the surface is unmapped, and should no longer be shown.
  *

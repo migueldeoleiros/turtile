@@ -101,7 +101,7 @@ void server_new_xdg_popup(struct wl_listener *listener, void *data);
 
 /**
  * Redraws the windows on the server by enabling or disabling their scene nodes
- * based on whether they are on the active workspace.
+ * based on whether they are on the active workspace, and run tiling script.
  *
  * @param server The server instance whose windows will be redrawn.
  */

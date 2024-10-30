@@ -101,6 +101,16 @@ struct turtile_toplevel *desktop_toplevel_at(
     return tree->node.data;
 }
 
+void toplevel_resize(
+        struct turtile_toplevel *toplevel, struct wlr_box geometry) {
+	toplevel->geometry = geometry;
+
+	wlr_scene_node_set_position(&toplevel->scene_tree->node,
+								toplevel->geometry.x, toplevel->geometry.y);
+	wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, toplevel->geometry.width,
+							  toplevel->geometry.height);
+}
+
 void xdg_toplevel_map(struct wl_listener *listener, void *data) {
     /* Called when the surface is mapped, or ready to display on-screen. */
     struct turtile_toplevel *toplevel = wl_container_of(listener, toplevel, map);
@@ -189,18 +199,6 @@ void begin_interactive(struct turtile_toplevel *toplevel,
 
         server->resize_edges = edges;
     }
-}
-
-void toplevel_resize(
-        struct turtile_toplevel *toplevel, struct wlr_box geometry) {
-	/* wlr_xdg_toplevel_set_bounds(toplevel->xdg_toplevel, geometry.width, */
-	/* 							geometry.height); */
-	toplevel->geometry = geometry;
-
-	wlr_scene_node_set_position(&toplevel->scene_tree->node,
-								toplevel->geometry.x, toplevel->geometry.y);
-	wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, toplevel->geometry.width,
-							  toplevel->geometry.height);
 }
 
 void xdg_toplevel_request_move(
