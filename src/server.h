@@ -44,6 +44,7 @@ struct turtile_server {
     struct wl_listener new_xdg_toplevel;
     struct wl_listener new_xdg_popup;
     struct wl_list toplevels;
+    struct wl_list focus_toplevels;
 
     struct wl_list workspaces;
     struct turtile_workspace *active_workspace;

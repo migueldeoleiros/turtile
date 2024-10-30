@@ -26,9 +26,11 @@
 #include "cursor.h"
 #include "src/output.h"
 #include <wlr/types/wlr_output.h>
+#include <wlr/types/wlr_xdg_shell.h>
 
 struct turtile_toplevel {
     struct wl_list link;
+    struct wl_list flink;
     struct turtile_server *server;
     struct wlr_xdg_toplevel *xdg_toplevel;
     struct wlr_scene_tree *scene_tree;
@@ -54,6 +56,15 @@ struct turtile_toplevel {
  */
 void focus_toplevel(struct turtile_toplevel *toplevel,
                            struct wlr_surface *surface);
+/**
+ * Retrieves the first toplevel on the active workspace of the given server.
+ * If no such toplevel is found, NULL is returned.
+
+ * @param server The turtile server to search for the toplevel on.
+ * @return A pointer to the first toplevel on the active workspace,
+ *	       or NULL if no such toplevel is found.
+ */
+struct turtile_toplevel *get_first_toplevel(struct turtile_server *server);
 
 /**
  * Given a server, layout coordinates, and optional surface and position
