@@ -145,6 +145,16 @@ int main(int argc, char *argv[]) {
     server.scene = wlr_scene_create();
     server.scene_layout = wlr_scene_attach_output_layout(server.scene, server.output_layout);
 
+    // Set a static background color
+	float *color = config_get_instance()->backgroundColor;
+    struct wlr_scene_rect *background =
+		wlr_scene_rect_create(&server.scene->tree, 10000, 10000, color);
+    if (!background) {
+        wlr_log(WLR_ERROR, "Failed to create background color rectangle");
+        return 1;
+    }
+    wlr_scene_node_raise_to_top(&background->node);
+
     /* Set up xdg-shell version 3. The xdg-shell is a Wayland protocol which is
      * used for application windows. For more detail on shells, refer to
      * https://drewdevault.com/2018/07/29/Wayland-shells.html.
