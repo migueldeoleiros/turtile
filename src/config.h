@@ -48,6 +48,7 @@ typedef struct config {
     struct wl_list keybinds;
     struct wl_list autostart;
     struct wl_list workspaces;
+	float *backgroundColor;
 } turtile_config_t;
 
 typedef struct {
@@ -58,6 +59,7 @@ typedef struct {
 void load_keybinds(config_t *cfg, const char *value);
 void load_autostart(config_t *cfg, const char *value);
 void load_workspaces(config_t *cfg, const char *value);
+void load_background_color(config_t *cfg, const char *value);
 
 /**
  * Returns the singleton instance of the configuration.

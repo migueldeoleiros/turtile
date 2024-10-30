@@ -39,6 +39,7 @@ config_param_t config_params[] = {
     {"keybinds", load_keybinds},
     {"autostart", load_autostart},
     {"workspaces", load_workspaces},
+    {"background_color", load_background_color},
     // Add more configuration parameters here
 };
 
@@ -216,6 +217,24 @@ void load_workspaces(config_t *cfg, const char *value) {
     }
 }
 
+void load_background_color(config_t *cfg, const char *value) {
+	float *backgroundColor = malloc(sizeof(float[4]));
+    if (!backgroundColor) {
+		wlr_log(WLR_ERROR, "Failed to allocate backgroundColor");
+        return;
+    }
+    config_setting_t *background_setting = config_lookup(cfg, "background_color");
+    if (!background_setting) {
+        wlr_log(WLR_ERROR, "background_color not found in configuration");
+		return;
+    }
+	for (int i = 0; i < 3; i++) {
+		backgroundColor[i]  = config_setting_get_float_elem(background_setting, i);
+	}
+	backgroundColor[3] = 1.0;
+	config_get_instance()->backgroundColor = backgroundColor;
+}
+
 void config_load_from_file(const char *filepath) {
     char full_path[256];
     realpath(filepath, full_path);
@@ -252,6 +271,7 @@ turtile_config_t *config_get_instance(void) {
         wl_list_init(&config_instance->keybinds);
         wl_list_init(&config_instance->autostart);
         wl_list_init(&config_instance->workspaces);
+        config_instance->backgroundColor = malloc(sizeof(float[4]));
     }
     return config_instance;
 }
@@ -278,6 +298,10 @@ void config_free_instance(void) {
             free(workspace->name);
             free(workspace);
         }
+
+		// Free background color
+		free(config_instance->backgroundColor);
+
         free(config_instance);
         config_instance = NULL;
     }
