@@ -32,6 +32,7 @@ struct turtile_toplevel {
     struct turtile_server *server;
     struct wlr_xdg_toplevel *xdg_toplevel;
     struct wlr_scene_tree *scene_tree;
+    struct wlr_box geometry;
     struct wl_listener map;
     struct wl_listener unmap;
     struct wl_listener commit;
@@ -83,6 +84,8 @@ struct turtile_toplevel *desktop_toplevel_at(
  */
 void xdg_toplevel_map(struct wl_listener *listener, void *data);
 
+void toplevel_resize(
+	struct turtile_toplevel *toplevel, struct wlr_box geometry);
 /**
  * Called when the surface is unmapped, and should no longer be shown.
  *

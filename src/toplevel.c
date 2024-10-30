@@ -21,6 +21,7 @@
 */
 
 #include "toplevel.h"
+#include "src/server.h"
 #include "src/workspace.h"
 #include <stdlib.h>
 #include <wlr/types/wlr_cursor.h>
@@ -148,6 +149,7 @@ void xdg_toplevel_destroy(struct wl_listener *listener, void *data) {
     wl_list_remove(&toplevel->request_maximize.link);
     wl_list_remove(&toplevel->request_fullscreen.link);
 
+	server_redraw_windows(toplevel->server);
     free(toplevel);
 }
 
@@ -187,6 +189,18 @@ void begin_interactive(struct turtile_toplevel *toplevel,
 
         server->resize_edges = edges;
     }
+}
+
+void toplevel_resize(
+        struct turtile_toplevel *toplevel, struct wlr_box geometry) {
+	/* wlr_xdg_toplevel_set_bounds(toplevel->xdg_toplevel, geometry.width, */
+	/* 							geometry.height); */
+	toplevel->geometry = geometry;
+
+	wlr_scene_node_set_position(&toplevel->scene_tree->node,
+								toplevel->geometry.x, toplevel->geometry.y);
+	wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, toplevel->geometry.width,
+							  toplevel->geometry.height);
 }
 
 void xdg_toplevel_request_move(

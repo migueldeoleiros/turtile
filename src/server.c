@@ -24,8 +24,11 @@
 
 #include "cursor.h"
 #include "keyboard.h"
+#include "src/output.h"
 #include "toplevel.h"
 #include "popup.h"
+#include "wlr/util/box.h"
+#include "wlr/types/wlr_output_layout.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <wlr/types/wlr_scene.h>
@@ -113,7 +116,51 @@ void server_new_xdg_popup(struct wl_listener *listener, void *data) {
 	wl_signal_add(&xdg_popup->events.destroy, &popup->destroy);
 }
 
-void server_redraw_windows(struct turtile_server *server){
+void tile(struct turtile_server *server) {
+	int nmaster = 1; //number of master windows
+	double mfact = 0.5; //master size
+	unsigned int i, n = 0, mw, my, ty;
+	struct turtile_toplevel *toplevel;
+
+	struct wlr_box m;
+	struct turtile_output *output;
+	wl_list_for_each(output, &server->outputs, link)
+		wlr_output_layout_get_box(server->output_layout, output->wlr_output, &m);
+
+	wl_list_for_each(toplevel, &server->toplevels, link) {
+		if (toplevel->workspace == server->active_workspace)
+			n++;
+	}
+	if (n == 0)
+		return;
+
+	if (n > nmaster)
+		mw = nmaster ? m.width * mfact : 0;
+	else
+		mw = m.width;
+	i = my = ty = 0;
+	wl_list_for_each(toplevel, &server->toplevels, link) {
+		if (toplevel->workspace != server->active_workspace)
+			continue;
+		if (i < 1) {
+			toplevel_resize(toplevel, (struct wlr_box){
+							.x = m.x, .y = m.y + my,
+							.width = mw,
+							.height = (m.height - my) /
+							(((n) < (nmaster) ? (n) : (nmaster)) - i)});
+			my += toplevel->geometry.height;
+		} else {
+			toplevel_resize(toplevel, (struct wlr_box){
+					.x = m.x + mw, .y = m.y + ty,
+					.width = m.width - mw,
+					.height = (m.height - ty) / (n - i)});
+			ty += toplevel->geometry.height;
+		}
+		i++;
+	}
+}
+
+void server_redraw_windows(struct turtile_server *server) {
 	struct turtile_toplevel *toplevel;
 	wl_list_for_each(toplevel, &server->toplevels, link) {
 		if (toplevel->workspace == server->active_workspace) {
@@ -121,6 +168,7 @@ void server_redraw_windows(struct turtile_server *server){
 		} else {
 			wlr_scene_node_set_enabled(&toplevel->scene_tree->node, false);
 		}
-	}
 
+	}
+	tile(server);
 }
