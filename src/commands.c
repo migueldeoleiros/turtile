@@ -177,19 +177,29 @@ void window_list_command(char *tokens[], int ntokens, char *response,
 
 void window_switch_command(char *tokens[], int ntokens, char *response,
 					struct turtile_context *context){
-	// Cycle to the next toplevel
-	// TODO: add option to switch window by name
+	// Switch focus to designated toplevel
 	struct turtile_server *server = context->server;
 
-	if (wl_list_length(&server->focus_toplevels) < 2) {
-        response = strdup("{\"error\": \"Only one current window open\"}");
-		return;
+	if(ntokens >= 1){
+		char *new_toplevel_id = tokens[0];
+		struct turtile_toplevel *toplevel;
+
+		wl_list_for_each(toplevel, &server->focus_toplevels, flink) {
+			if(strcmp(toplevel->id, new_toplevel_id) == 0){
+				focus_toplevel(toplevel, toplevel->xdg_toplevel->base->surface);
+				snprintf(response, MAX_MSG_SIZE,
+						 "{\"success\": \"switching focus to: %s\"}",
+						 toplevel->xdg_toplevel->title);
+				return;
+			}
+		}
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"error\": \"window %s not found\"}", new_toplevel_id);
+
+	} else{
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"error\": \"missing argument: window id\"}");
 	}
-	struct turtile_toplevel *next_toplevel =
-		wl_container_of(server->focus_toplevels.prev, next_toplevel, flink);
-	focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
-    snprintf(response, MAX_MSG_SIZE, "{\"success\": \"switching focus to: %s\"}",
-			 next_toplevel->xdg_toplevel->title);
 }
 
 void window_cycle_command(char *tokens[], int ntokens, char *response,
