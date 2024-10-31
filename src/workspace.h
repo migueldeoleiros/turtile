@@ -43,6 +43,16 @@ struct turtile_workspace {
  */
 struct turtile_workspace* create_workspace(struct turtile_server *server,
 										  char *name);
+
+/**
+ * Retrieves the workspace with the given name from the given server.
+ *
+ * @param server The turtile server to search for the workspace on.
+ * @param name The name of the workspace to retrieve.
+ * @return A pointer to the workspace with the given name, or NULL
+ */
+struct turtile_workspace *get_workspace(struct turtile_server *server,
+										char *name);
 /**
  * Switches the active workspace to the specified workspace.
  *
@@ -61,4 +71,13 @@ void switch_workspace(struct turtile_workspace *workspace);
  */
 struct turtile_workspace* create_workspaces_from_config(struct turtile_server *server);
 
+/**
+ * Retrieves the list of toplevel windows in the specified workspace.
+ *
+ * @param workspace The workspace to retrieve toplevel windows from.
+ * @param toplevels The list to store the toplevel windows in, making use of
+ *                  auxlink
+*/
+void get_workspace_toplevels(struct turtile_workspace *workspace,
+							 struct wl_list *toplevels);
 #endif // WORKSPACE_H

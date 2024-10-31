@@ -24,8 +24,10 @@
 #include "src/server.h"
 #include "src/toplevel.h"
 #include "src/workspace.h"
+#include "wlr/util/log.h"
 #include <stdio.h>
 #include <string.h>
+#include <wayland-util.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <json-c/json.h>
 
@@ -37,13 +39,19 @@ void window_command(char *tokens[], int ntokens, char *response,
 void window_list_command(char *tokens[], int ntokens, char *response,
 						 struct turtile_context *context);
 void window_switch_command(char *tokens[], int ntokens, char *response,
+						   struct turtile_context *context);
+void window_cycle_command(char *tokens[], int ntokens, char *response,
+						  struct turtile_context *context);
+void window_kill_command(char *tokens[], int ntokens, char *response,
 						 struct turtile_context *context);
+void window_move_to_command(char *tokens[], int ntokens, char *response,
+							struct turtile_context *context);
 void workspace_command(char *tokens[], int ntokens, char *response,
 					   struct turtile_context *context);
 void workspace_list_command(char *tokens[], int ntokens, char *response,
-					   struct turtile_context *context);
+							struct turtile_context *context);
 void workspace_switch_command(char *tokens[], int ntokens, char *response,
-							  struct turtile_context *context);
+							  struct turtile_context *conntext);
 typedef struct {
     char *cmd_name;
     char *subcmd_name;
@@ -56,6 +64,9 @@ static command_t commands[] = {
     {"exit", NULL, exit_command},
     {"window", "list", window_list_command},
     {"window", "switch", window_switch_command},
+    {"window", "cycle", window_cycle_command},
+    {"window", "kill", window_kill_command},
+    {"window", "move-to", window_move_to_command},
     {"window", NULL, window_command},
     {"workspace", "list", workspace_list_command},
     {"workspace", "switch", workspace_switch_command},
@@ -148,9 +159,15 @@ void window_list_command(char *tokens[], int ntokens, char *response,
         if (toplevel->xdg_toplevel) {
             const char *title = toplevel->xdg_toplevel->title ?
 				toplevel->xdg_toplevel->title : "Unnamed";
+            const char *app = toplevel->xdg_toplevel->app_id ?
+				toplevel->xdg_toplevel->title : "null";
 
             // Create a JSON object for each window and populate its fields
             struct json_object *json_window = json_object_new_object();
+            json_object_object_add(json_window, "id",
+								   json_object_new_string(toplevel->id));
+            json_object_object_add(json_window, "app",
+								   json_object_new_string(app));
             json_object_object_add(json_window, "title",
 								   json_object_new_string(title));
             json_object_object_add(json_window, "workspace",
@@ -166,19 +183,131 @@ void window_list_command(char *tokens[], int ntokens, char *response,
 
 void window_switch_command(char *tokens[], int ntokens, char *response,
 					struct turtile_context *context){
-	// Cycle to the next toplevel
-	// TODO: add option to switch window by name
+	// Switch focus to designated toplevel
 	struct turtile_server *server = context->server;
 
-	if (wl_list_length(&server->toplevels) < 2) {
-        response = strdup("{\"error\": \"Only one current window open\"}");
-		return;
+	if(ntokens >= 1){
+		char *new_toplevel_id = tokens[0];
+		struct turtile_toplevel *toplevel;
+
+		wl_list_for_each(toplevel, &server->focus_toplevels, flink) {
+			if(strcmp(toplevel->id, new_toplevel_id) == 0){
+				focus_toplevel(toplevel, toplevel->xdg_toplevel->base->surface);
+				snprintf(response, MAX_MSG_SIZE,
+						 "{\"success\": \"switching focus to: %s\"}",
+						 toplevel->xdg_toplevel->title);
+				return;
+			}
+		}
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"error\": \"window %s not found\"}", new_toplevel_id);
+
+	} else{
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"error\": \"missing argument: window id\"}");
 	}
+}
+
+void window_cycle_command(char *tokens[], int ntokens, char *response,
+					struct turtile_context *context){
+	// Cycle to the next toplevel in the same workspace
+	struct turtile_server *server = context->server;
+
+	struct wl_list workspace_toplevels; 
+	get_workspace_toplevels(server->active_workspace, &workspace_toplevels);
+
+	if (wl_list_empty(&workspace_toplevels)){
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"error\": \"Workspace is empty\"}");
+		return;
+	} else if (wl_list_length(&workspace_toplevels) < 2) {
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"error\": \"Only one current window open\"}");
+		return;
+	} 		
+
 	struct turtile_toplevel *next_toplevel =
-		wl_container_of(server->toplevels.prev, next_toplevel, link);
+		wl_container_of(workspace_toplevels.next, next_toplevel, auxlink);
 	focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
     snprintf(response, MAX_MSG_SIZE, "{\"success\": \"switching focus to: %s\"}",
 			 next_toplevel->xdg_toplevel->title);
+}
+
+void window_kill_command(char *tokens[], int ntokens, char *response,
+					struct turtile_context *context){
+	// kill designated toplevel
+	struct turtile_server *server = context->server;
+	struct turtile_toplevel *toplevel;
+
+	if(ntokens >= 1){
+		char *new_toplevel_id = tokens[0];
+
+		wl_list_for_each(toplevel, &server->focus_toplevels, flink) {
+			if(strcmp(toplevel->id, new_toplevel_id) == 0){
+				kill_toplevel(toplevel);
+				snprintf(response, MAX_MSG_SIZE,
+						 "{\"success\": \"kill: %s\"}",
+						 toplevel->xdg_toplevel->title);
+				return;
+			}
+		}
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"error\": \"window %s not found\"}", new_toplevel_id);
+
+	} else{
+		toplevel = get_first_toplevel(server);
+		kill_toplevel(toplevel);
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"success\": \"kill: %s\"}", toplevel->xdg_toplevel->title);
+	}
+}
+
+void window_move_to_command(char *tokens[], int ntokens, char *response,
+							struct turtile_context *context){
+	struct turtile_server *server = context->server;
+
+    if (ntokens >= 1) {
+		char *target_workspace_name = tokens[0];
+		struct turtile_workspace *target_workspace =
+			get_workspace(server, target_workspace_name);
+
+		if (!target_workspace) {
+			snprintf(response, MAX_MSG_SIZE,
+					 "{\"error\": \"workspace not found\"}");
+			return;
+		}
+
+		struct turtile_toplevel *toplevel_to_move;
+		if (ntokens >= 2) {
+			char *toplevel_id = tokens[1];
+			
+			toplevel_to_move = get_toplevel(server, toplevel_id);
+			
+			if (!toplevel_to_move) {
+				snprintf(response, MAX_MSG_SIZE,
+						 "{\"error\": \"window %s not found\"}", toplevel_id);
+				return;
+			}
+		} else {
+			toplevel_to_move = get_first_toplevel(server);
+			if (!toplevel_to_move) {
+				snprintf(response, MAX_MSG_SIZE,
+						 "{\"error\": \"no focused window to move\"}");
+				return;
+			}
+		}
+		
+		toplevel_to_move->workspace = target_workspace;
+		server_redraw_windows(server);
+		
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"success\": \"moved window %s to workspace %s\"}",
+				 toplevel_to_move->xdg_toplevel->title, target_workspace->name);
+
+    } else {
+        snprintf(response, MAX_MSG_SIZE,
+                 "{\"error\": \"missing argument: workspace name\"}");
+	}
 }
 
 void workspace_command(char *tokens[], int ntokens, char *response,

@@ -41,6 +41,17 @@ struct turtile_workspace* create_workspace(struct turtile_server *server,
 	return new_workspace;
 }
 
+struct turtile_workspace *get_workspace(struct turtile_server *server,
+										char *name) {
+	struct turtile_workspace *workspace;
+	wl_list_for_each(workspace, &server->workspaces, link) {
+		if (strcmp(workspace->name, name) == 0) {
+			return workspace;
+		}
+	}
+	return NULL;
+}
+
 void switch_workspace(struct turtile_workspace *workspace){
 	if(workspace == NULL){
 		return;
@@ -64,4 +75,15 @@ struct turtile_workspace* create_workspaces_from_config(struct turtile_server *s
 		active_workspace = create_workspace(server, workspace_config->name);
 	}
 	return active_workspace; 
+}
+
+void get_workspace_toplevels(struct turtile_workspace *workspace,
+										struct wl_list *toplevels) {
+    struct turtile_server *server = workspace->server;
+    wl_list_init(toplevels);
+
+    struct turtile_toplevel *toplevel;
+    wl_list_for_each(toplevel, &server->focus_toplevels, flink)
+        if (toplevel->workspace == workspace)
+            wl_list_insert(toplevels, &toplevel->auxlink);
 }

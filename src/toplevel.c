@@ -29,6 +29,7 @@
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xcursor_manager.h>
+#include <uuid/uuid.h>
 
 void focus_toplevel(struct turtile_toplevel *toplevel, struct wlr_surface *surface) {
     /* Note: this function only deals with keyboard focus. */
@@ -73,6 +74,37 @@ void focus_toplevel(struct turtile_toplevel *toplevel, struct wlr_surface *surfa
             keyboard->keycodes, keyboard->num_keycodes, &keyboard->modifiers);
     }
 	server_redraw_windows(server);
+}
+
+void kill_toplevel(struct turtile_toplevel *toplevel) {
+	struct turtile_server *server = toplevel->server;
+
+	struct wl_list workspace_toplevels; 
+	get_workspace_toplevels(server->active_workspace, &workspace_toplevels);
+
+	if (wl_list_empty(&workspace_toplevels)){
+		wlr_xdg_toplevel_send_close(toplevel->xdg_toplevel);
+		return;
+	} else if (wl_list_length(&workspace_toplevels) < 2) {
+		wlr_xdg_toplevel_send_close(toplevel->xdg_toplevel);
+		return;
+	} 		
+
+	struct turtile_toplevel *next_toplevel =
+		wl_container_of(workspace_toplevels.next, next_toplevel, auxlink);
+	focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
+
+	wlr_xdg_toplevel_send_close(toplevel->xdg_toplevel);
+}
+
+struct turtile_toplevel *get_toplevel(struct turtile_server *server, char *id) {
+	struct turtile_toplevel *toplevel;
+	wl_list_for_each(toplevel, &server->toplevels, link) {
+		if (strcmp(toplevel->id, id) == 0) {
+			return toplevel;
+		}
+	}
+	return NULL;
 }
 
 struct turtile_toplevel *get_first_toplevel(struct turtile_server *server) {
@@ -130,6 +162,13 @@ void toplevel_resize(
 void xdg_toplevel_map(struct wl_listener *listener, void *data) {
     /* Called when the surface is mapped, or ready to display on-screen. */
     struct turtile_toplevel *toplevel = wl_container_of(listener, toplevel, map);
+
+    uuid_t uuid;
+    uuid_generate(uuid);
+    // Convert first 4 bytes of UUID to a short 8-character hexadecimal string
+    char short_uuid_str[9]; // 8 characters + null terminator
+    snprintf(short_uuid_str, sizeof(short_uuid_str), "%08x", *(uint32_t*)uuid);
+    strncpy(toplevel->id, short_uuid_str, sizeof(toplevel->id));
 
 	toplevel->workspace = toplevel->server->active_workspace;
     wl_list_insert(&toplevel->server->toplevels, &toplevel->link);

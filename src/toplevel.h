@@ -27,14 +27,20 @@
 #include "src/output.h"
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_xdg_shell.h>
+#include <uuid/uuid.h>
 
 struct turtile_toplevel {
     struct wl_list link;
     struct wl_list flink;
+    struct wl_list auxlink;
+
+	char id[9]; // 8 characters + null terminator
     struct turtile_server *server;
     struct wlr_xdg_toplevel *xdg_toplevel;
     struct wlr_scene_tree *scene_tree;
+	struct turtile_workspace *workspace;
     struct wlr_box geometry;
+
     struct wl_listener map;
     struct wl_listener unmap;
     struct wl_listener commit;
@@ -43,8 +49,6 @@ struct turtile_toplevel {
     struct wl_listener request_resize;
     struct wl_listener request_maximize;
     struct wl_listener request_fullscreen;
-
-	struct turtile_workspace *workspace;
 };
 
 /**
@@ -56,6 +60,22 @@ struct turtile_toplevel {
  */
 void focus_toplevel(struct turtile_toplevel *toplevel,
                            struct wlr_surface *surface);
+/**
+ * Send close request to toplevel, and focus next window
+ *
+ * @param toplevel The turtile toplevel to kill.
+ */
+void kill_toplevel(struct turtile_toplevel *toplevel);
+
+/**
+ * Retrieves the toplevel with the given ID from the given server.
+ *
+ * @param server The turtile server to search for the toplevel on.
+ * @param id The ID of the toplevel to retrieve.
+ * @return A pointer to the toplevel with the given ID, or NULL
+ */
+struct turtile_toplevel *get_toplevel(struct turtile_server *server, char *id);
+
 /**
  * Retrieves the first toplevel on the active workspace of the given server.
  * If no such toplevel is found, NULL is returned.
