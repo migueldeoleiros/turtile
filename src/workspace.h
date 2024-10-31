@@ -61,4 +61,13 @@ void switch_workspace(struct turtile_workspace *workspace);
  */
 struct turtile_workspace* create_workspaces_from_config(struct turtile_server *server);
 
+/**
+ * Retrieves the list of toplevel windows in the specified workspace.
+ *
+ * @param workspace The workspace to retrieve toplevel windows from.
+ * @param toplevels The list to store the toplevel windows in, making use of
+ *                  auxlink
+*/
+void get_workspace_toplevels(struct turtile_workspace *workspace,
+							 struct wl_list *toplevels);
 #endif // WORKSPACE_H

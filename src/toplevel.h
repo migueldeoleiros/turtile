@@ -31,6 +31,7 @@
 struct turtile_toplevel {
     struct wl_list link;
     struct wl_list flink;
+    struct wl_list auxlink;
     struct turtile_server *server;
     struct wlr_xdg_toplevel *xdg_toplevel;
     struct wlr_scene_tree *scene_tree;

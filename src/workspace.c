@@ -65,3 +65,14 @@ struct turtile_workspace* create_workspaces_from_config(struct turtile_server *s
 	}
 	return active_workspace; 
 }
+
+void get_workspace_toplevels(struct turtile_workspace *workspace,
+										struct wl_list *toplevels) {
+    struct turtile_server *server = workspace->server;
+    wl_list_init(toplevels);
+
+    struct turtile_toplevel *toplevel;
+    wl_list_for_each(toplevel, &server->focus_toplevels, flink)
+        if (toplevel->workspace == workspace)
+            wl_list_insert(toplevels, &toplevel->auxlink);
+}

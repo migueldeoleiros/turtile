@@ -24,8 +24,10 @@
 #include "src/server.h"
 #include "src/toplevel.h"
 #include "src/workspace.h"
+#include "wlr/util/log.h"
 #include <stdio.h>
 #include <string.h>
+#include <wayland-util.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <json-c/json.h>
 
@@ -37,6 +39,8 @@ void window_command(char *tokens[], int ntokens, char *response,
 void window_list_command(char *tokens[], int ntokens, char *response,
 						 struct turtile_context *context);
 void window_switch_command(char *tokens[], int ntokens, char *response,
+						 struct turtile_context *context);
+void window_cycle_command(char *tokens[], int ntokens, char *response,
 						 struct turtile_context *context);
 void workspace_command(char *tokens[], int ntokens, char *response,
 					   struct turtile_context *context);
@@ -56,6 +60,7 @@ static command_t commands[] = {
     {"exit", NULL, exit_command},
     {"window", "list", window_list_command},
     {"window", "switch", window_switch_command},
+    {"window", "cycle", window_cycle_command},
     {"window", NULL, window_command},
     {"workspace", "list", workspace_list_command},
     {"workspace", "switch", workspace_switch_command},
@@ -170,12 +175,37 @@ void window_switch_command(char *tokens[], int ntokens, char *response,
 	// TODO: add option to switch window by name
 	struct turtile_server *server = context->server;
 
-	if (wl_list_length(&server->toplevels) < 2) {
+	if (wl_list_length(&server->focus_toplevels) < 2) {
         response = strdup("{\"error\": \"Only one current window open\"}");
 		return;
 	}
 	struct turtile_toplevel *next_toplevel =
-		wl_container_of(server->toplevels.prev, next_toplevel, link);
+		wl_container_of(server->focus_toplevels.prev, next_toplevel, flink);
+	focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
+    snprintf(response, MAX_MSG_SIZE, "{\"success\": \"switching focus to: %s\"}",
+			 next_toplevel->xdg_toplevel->title);
+}
+
+void window_cycle_command(char *tokens[], int ntokens, char *response,
+					struct turtile_context *context){
+	// Cycle to the next toplevel in the same workspace
+	struct turtile_server *server = context->server;
+
+	struct wl_list workspace_toplevels; 
+	get_workspace_toplevels(server->active_workspace, &workspace_toplevels);
+
+	if (wl_list_empty(&workspace_toplevels)){
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"error\": \"Workspace is empty\"}");
+		return;
+	} else if (wl_list_length(&workspace_toplevels) < 2) {
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"error\": \"Only one current window open\"}");
+		return;
+	} 		
+
+	struct turtile_toplevel *next_toplevel =
+		wl_container_of(workspace_toplevels.next, next_toplevel, auxlink);
 	focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
     snprintf(response, MAX_MSG_SIZE, "{\"success\": \"switching focus to: %s\"}",
 			 next_toplevel->xdg_toplevel->title);
