@@ -60,6 +60,9 @@ struct turtile_toplevel {
  */
 void focus_toplevel(struct turtile_toplevel *toplevel,
                            struct wlr_surface *surface);
+
+void kill_toplevel(struct turtile_toplevel *toplevel);
+
 /**
  * Retrieves the first toplevel on the active workspace of the given server.
  * If no such toplevel is found, NULL is returned.

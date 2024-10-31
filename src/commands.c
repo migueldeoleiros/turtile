@@ -42,6 +42,8 @@ void window_switch_command(char *tokens[], int ntokens, char *response,
 						 struct turtile_context *context);
 void window_cycle_command(char *tokens[], int ntokens, char *response,
 						 struct turtile_context *context);
+void window_kill_command(char *tokens[], int ntokens, char *response,
+						 struct turtile_context *context);
 void workspace_command(char *tokens[], int ntokens, char *response,
 					   struct turtile_context *context);
 void workspace_list_command(char *tokens[], int ntokens, char *response,
@@ -61,6 +63,7 @@ static command_t commands[] = {
     {"window", "list", window_list_command},
     {"window", "switch", window_switch_command},
     {"window", "cycle", window_cycle_command},
+    {"window", "kill", window_kill_command},
     {"window", NULL, window_command},
     {"workspace", "list", workspace_list_command},
     {"workspace", "switch", workspace_switch_command},
@@ -225,6 +228,35 @@ void window_cycle_command(char *tokens[], int ntokens, char *response,
 	focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
     snprintf(response, MAX_MSG_SIZE, "{\"success\": \"switching focus to: %s\"}",
 			 next_toplevel->xdg_toplevel->title);
+}
+
+void window_kill_command(char *tokens[], int ntokens, char *response,
+					struct turtile_context *context){
+	// kill designated toplevel
+	struct turtile_server *server = context->server;
+	struct turtile_toplevel *toplevel;
+
+	if(ntokens >= 1){
+		char *new_toplevel_id = tokens[0];
+
+		wl_list_for_each(toplevel, &server->focus_toplevels, flink) {
+			if(strcmp(toplevel->id, new_toplevel_id) == 0){
+				kill_toplevel(toplevel);
+				snprintf(response, MAX_MSG_SIZE,
+						 "{\"success\": \"kill: %s\"}",
+						 toplevel->xdg_toplevel->title);
+				return;
+			}
+		}
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"error\": \"window %s not found\"}", new_toplevel_id);
+
+	} else{
+		toplevel = get_first_toplevel(server);
+		kill_toplevel(toplevel);
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"success\": \"kill: %s\"}", toplevel->xdg_toplevel->title);
+	}
 }
 
 void workspace_command(char *tokens[], int ntokens, char *response,

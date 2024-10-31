@@ -76,6 +76,27 @@ void focus_toplevel(struct turtile_toplevel *toplevel, struct wlr_surface *surfa
 	server_redraw_windows(server);
 }
 
+void kill_toplevel(struct turtile_toplevel *toplevel) {
+	struct turtile_server *server = toplevel->server;
+
+	struct wl_list workspace_toplevels; 
+	get_workspace_toplevels(server->active_workspace, &workspace_toplevels);
+
+	if (wl_list_empty(&workspace_toplevels)){
+		wlr_xdg_toplevel_send_close(toplevel->xdg_toplevel);
+		return;
+	} else if (wl_list_length(&workspace_toplevels) < 2) {
+		wlr_xdg_toplevel_send_close(toplevel->xdg_toplevel);
+		return;
+	} 		
+
+	struct turtile_toplevel *next_toplevel =
+		wl_container_of(workspace_toplevels.next, next_toplevel, auxlink);
+	focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
+
+	wlr_xdg_toplevel_send_close(toplevel->xdg_toplevel);
+}
+
 struct turtile_toplevel *get_first_toplevel(struct turtile_server *server) {
 	struct turtile_toplevel *toplevel;
 	wl_list_for_each(toplevel, &server->focus_toplevels, flink)
