@@ -97,6 +97,16 @@ void kill_toplevel(struct turtile_toplevel *toplevel) {
 	wlr_xdg_toplevel_send_close(toplevel->xdg_toplevel);
 }
 
+struct turtile_toplevel *get_toplevel(struct turtile_server *server, char *id) {
+	struct turtile_toplevel *toplevel;
+	wl_list_for_each(toplevel, &server->toplevels, link) {
+		if (strcmp(toplevel->id, id) == 0) {
+			return toplevel;
+		}
+	}
+	return NULL;
+}
+
 struct turtile_toplevel *get_first_toplevel(struct turtile_server *server) {
 	struct turtile_toplevel *toplevel;
 	wl_list_for_each(toplevel, &server->focus_toplevels, flink)

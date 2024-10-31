@@ -43,6 +43,9 @@ struct turtile_workspace {
  */
 struct turtile_workspace* create_workspace(struct turtile_server *server,
 										  char *name);
+
+struct turtile_workspace *get_workspace(struct turtile_server *server,
+										char *name);
 /**
  * Switches the active workspace to the specified workspace.
  *

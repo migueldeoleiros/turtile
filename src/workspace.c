@@ -41,6 +41,17 @@ struct turtile_workspace* create_workspace(struct turtile_server *server,
 	return new_workspace;
 }
 
+struct turtile_workspace *get_workspace(struct turtile_server *server,
+										char *name) {
+	struct turtile_workspace *workspace;
+	wl_list_for_each(workspace, &server->workspaces, link) {
+		if (strcmp(workspace->name, name) == 0) {
+			return workspace;
+		}
+	}
+	return NULL;
+}
+
 void switch_workspace(struct turtile_workspace *workspace){
 	if(workspace == NULL){
 		return;
