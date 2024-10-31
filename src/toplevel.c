@@ -25,6 +25,7 @@
 #include "src/workspace.h"
 #include "wlr/util/log.h"
 #include <stdlib.h>
+#include <string.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xcursor_manager.h>
@@ -117,9 +118,13 @@ void toplevel_resize(
 	wlr_scene_node_set_position(&toplevel->scene_tree->node,
 								toplevel->geometry.x, toplevel->geometry.y);
 
-	if (strcmp(getenv("TURTILE_BACKEND"), "headless") != 0)
-		wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, toplevel->geometry.width,
-							  toplevel->geometry.height);
+	const char *backend = getenv("TURTILE_BACKEND");
+	if(backend && strcmp(backend, "headless") == 0)
+		wlr_log(WLR_ERROR, "No resize on headless mode");
+	else 
+		wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel,
+								  toplevel->geometry.width,
+								  toplevel->geometry.height);
 }
 
 void xdg_toplevel_map(struct wl_listener *listener, void *data) {
