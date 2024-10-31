@@ -153,13 +153,15 @@ void window_list_command(char *tokens[], int ntokens, char *response,
         if (toplevel->xdg_toplevel) {
             const char *title = toplevel->xdg_toplevel->title ?
 				toplevel->xdg_toplevel->title : "Unnamed";
+            const char *app = toplevel->xdg_toplevel->app_id ?
+				toplevel->xdg_toplevel->title : "null";
 
             // Create a JSON object for each window and populate its fields
             struct json_object *json_window = json_object_new_object();
             json_object_object_add(json_window, "id",
 								   json_object_new_string(toplevel->id));
             json_object_object_add(json_window, "app",
-								   json_object_new_string(toplevel->xdg_toplevel->app_id));
+								   json_object_new_string(app));
             json_object_object_add(json_window, "title",
 								   json_object_new_string(title));
             json_object_object_add(json_window, "workspace",
