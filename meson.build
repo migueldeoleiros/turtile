@@ -32,7 +32,8 @@ deps = [
 	dependency('wayland-server'),
 	dependency('xkbcommon'),
 	dependency('libconfig'),
-    dependency('json-c')
+    dependency('json-c'),
+    dependency('uuid')
 ]
 
 executable(

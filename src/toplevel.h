@@ -27,15 +27,20 @@
 #include "src/output.h"
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_xdg_shell.h>
+#include <uuid/uuid.h>
 
 struct turtile_toplevel {
     struct wl_list link;
     struct wl_list flink;
     struct wl_list auxlink;
+
+	char id[9]; // 8 characters + null terminator
     struct turtile_server *server;
     struct wlr_xdg_toplevel *xdg_toplevel;
     struct wlr_scene_tree *scene_tree;
+	struct turtile_workspace *workspace;
     struct wlr_box geometry;
+
     struct wl_listener map;
     struct wl_listener unmap;
     struct wl_listener commit;
@@ -44,8 +49,6 @@ struct turtile_toplevel {
     struct wl_listener request_resize;
     struct wl_listener request_maximize;
     struct wl_listener request_fullscreen;
-
-	struct turtile_workspace *workspace;
 };
 
 /**

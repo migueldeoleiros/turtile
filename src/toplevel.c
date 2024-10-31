@@ -29,6 +29,7 @@
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xcursor_manager.h>
+#include <uuid/uuid.h>
 
 void focus_toplevel(struct turtile_toplevel *toplevel, struct wlr_surface *surface) {
     /* Note: this function only deals with keyboard focus. */
@@ -130,6 +131,13 @@ void toplevel_resize(
 void xdg_toplevel_map(struct wl_listener *listener, void *data) {
     /* Called when the surface is mapped, or ready to display on-screen. */
     struct turtile_toplevel *toplevel = wl_container_of(listener, toplevel, map);
+
+    uuid_t uuid;
+    uuid_generate(uuid);
+    // Convert first 4 bytes of UUID to a short 8-character hexadecimal string
+    char short_uuid_str[9]; // 8 characters + null terminator
+    snprintf(short_uuid_str, sizeof(short_uuid_str), "%08x", *(uint32_t*)uuid);
+    strncpy(toplevel->id, short_uuid_str, sizeof(toplevel->id));
 
 	toplevel->workspace = toplevel->server->active_workspace;
     wl_list_insert(&toplevel->server->toplevels, &toplevel->link);
