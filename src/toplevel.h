@@ -60,9 +60,20 @@ struct turtile_toplevel {
  */
 void focus_toplevel(struct turtile_toplevel *toplevel,
                            struct wlr_surface *surface);
-
+/**
+ * Send close request to toplevel, and focus next window
+ *
+ * @param toplevel The turtile toplevel to kill.
+ */
 void kill_toplevel(struct turtile_toplevel *toplevel);
 
+/**
+ * Retrieves the toplevel with the given ID from the given server.
+ *
+ * @param server The turtile server to search for the toplevel on.
+ * @param id The ID of the toplevel to retrieve.
+ * @return A pointer to the toplevel with the given ID, or NULL
+ */
 struct turtile_toplevel *get_toplevel(struct turtile_server *server, char *id);
 
 /**

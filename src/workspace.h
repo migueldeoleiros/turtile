@@ -44,6 +44,13 @@ struct turtile_workspace {
 struct turtile_workspace* create_workspace(struct turtile_server *server,
 										  char *name);
 
+/**
+ * Retrieves the workspace with the given name from the given server.
+ *
+ * @param server The turtile server to search for the workspace on.
+ * @param name The name of the workspace to retrieve.
+ * @return A pointer to the workspace with the given name, or NULL
+ */
 struct turtile_workspace *get_workspace(struct turtile_server *server,
 										char *name);
 /**
