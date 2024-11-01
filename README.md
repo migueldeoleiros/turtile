@@ -16,7 +16,7 @@ Take a look at our [wiki](https://github.com/migueldeoleiros/turtile/wiki) page 
 
 # Contributing
 turtile is a free and open source project and we wlcome contributions from the community.
-If you find a bug or have a suggestion feel free to file an issue in github.
+If you find a bug or have a suggestion feel free to file an issue or create a new [discussion](https://github.com/migueldeoleiros/turtile/discussions).
 If you are interested in contributing in any other way, please see our [CONTRIBUTING.md](https://github.com/migueldeoleiros/turtile/blob/master/CONTRIBUTING.md) file for more information.
 
 # License
