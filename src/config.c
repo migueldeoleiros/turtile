@@ -30,6 +30,7 @@
 #include <string.h>
 #include <assert.h>
 #include <libconfig.h>
+#include <xkbcommon/xkbcommon.h>
 
 // Global configuration instance
 static turtile_config_t *config_instance = NULL;
@@ -79,8 +80,7 @@ void load_keybinds(config_t *cfg, const char *value) {
         config_setting_t *mod_setting = config_setting_lookup(keybind_setting, "mod");
         uint32_t mods = 0;
         if (mod_setting) {
-            int mod_count = config_setting_length(mod_setting);
-            for (int j = 0; j < mod_count; j++) {
+            for (int j = 0; j < config_setting_length(mod_setting); j++) {
                 const char *mod_str = config_setting_get_string_elem(mod_setting, j);
                 if (!mod_str) {
                     wlr_log(WLR_ERROR, "Invalid modifier string in configuration");
@@ -95,6 +95,8 @@ void load_keybinds(config_t *cfg, const char *value) {
                 } else if (strstr(mod_str, "alt")) {
                     mods |= WLR_MODIFIER_ALT;
                 } else if (strstr(mod_str, "mod4")) {
+                    mods |= WLR_MODIFIER_LOGO;
+                } else if (strstr(mod_str, "super")) {
                     mods |= WLR_MODIFIER_LOGO;
                 } else if (strstr(mod_str, "mod2")) {
                     mods |= WLR_MODIFIER_MOD2;
@@ -115,7 +117,7 @@ void load_keybinds(config_t *cfg, const char *value) {
 		}
 		
 		// Convert key string to keysym
-		xkb_keysym_t key = xkb_keysym_from_name(key_str, XKB_KEYSYM_CASE_INSENSITIVE);
+		xkb_keysym_t key = xkb_keysym_from_name(key_str, XKB_KEYSYM_NO_FLAGS);
 		if (key == XKB_KEY_NoSymbol) {
 			wlr_log(WLR_ERROR, "Invalid key name '%s' in configuration", key_str);
 			continue;
