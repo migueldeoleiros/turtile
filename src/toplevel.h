@@ -24,8 +24,6 @@
 #define TURTILE_TOPLEVEL_H
 
 #include "cursor.h"
-#include "src/output.h"
-#include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <uuid/uuid.h>
 

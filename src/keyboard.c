@@ -51,11 +51,10 @@ void keyboard_handle_modifiers(
 bool handle_keybinding(struct turtile_server *server, uint32_t modifiers,
 					   xkb_keysym_t sym) {
     turtile_keybind_t *keybind;
+	/* wlr_log(WLR_INFO, "key event: %d %d", modifiers, sym); */
 	wl_list_for_each(keybind, &config_get_instance()->keybinds, link) {
 		// Check if both the key and the modifiers match
-		wlr_log(WLR_INFO, "keybind: %d %d", keybind->mods, keybind->key);
-		wlr_log(WLR_INFO, "mods: %d", modifiers);
-		wlr_log(WLR_INFO, "key: %d", sym);
+		/* wlr_log(WLR_INFO, "keybind: %d %d", keybind->mods, keybind->key); */
 		if ((keybind->mods == modifiers) && (keybind->key == sym)) {
 			wlr_log(WLR_INFO, "Executing command: %s", keybind->cmd);
 			if (fork() == 0)
