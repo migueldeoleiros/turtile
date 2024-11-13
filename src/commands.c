@@ -46,6 +46,8 @@ void window_kill_command(char *tokens[], int ntokens, char *response,
 						 struct turtile_context *context);
 void window_move_to_command(char *tokens[], int ntokens, char *response,
 							struct turtile_context *context);
+void window_master_toggle_command(char *tokens[], int ntokens, char *response,
+								  struct turtile_context *context);
 void workspace_command(char *tokens[], int ntokens, char *response,
 					   struct turtile_context *context);
 void workspace_list_command(char *tokens[], int ntokens, char *response,
@@ -67,6 +69,7 @@ static command_t commands[] = {
     {"window", "cycle", window_cycle_command},
     {"window", "kill", window_kill_command},
     {"window", "move-to", window_move_to_command},
+    {"window", "mtoggle", window_master_toggle_command},
     {"window", NULL, window_command},
     {"workspace", "list", workspace_list_command},
     {"workspace", "switch", workspace_switch_command},
@@ -307,6 +310,43 @@ void window_move_to_command(char *tokens[], int ntokens, char *response,
     } else {
         snprintf(response, MAX_MSG_SIZE,
                  "{\"error\": \"missing argument: workspace name\"}");
+	}
+}
+
+void window_master_toggle_command(char *tokens[], int ntokens, char *response,
+								  struct turtile_context *context){
+	// Set designated toplevel as master
+	struct turtile_server *server = context->server;
+	struct turtile_toplevel *toplevel;
+
+	if(ntokens >= 1){
+		char *new_toplevel_id = tokens[0];
+
+		wl_list_for_each(toplevel, &server->focus_toplevels, flink) {
+			if(strcmp(toplevel->id, new_toplevel_id) == 0){
+
+				wl_list_remove(&toplevel->link);
+				wl_list_insert(&server->toplevels, &toplevel->link);
+				server_redraw_windows(server);
+
+				snprintf(response, MAX_MSG_SIZE,
+						 "{\"success\": \"master: %s\"}",
+						 toplevel->xdg_toplevel->title);
+				return;
+			}
+		}
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"error\": \"window %s not found\"}", new_toplevel_id);
+
+	} else{
+		toplevel = get_first_toplevel(server);
+
+		wl_list_remove(&toplevel->link);
+		wl_list_insert(&server->toplevels, &toplevel->link);
+		server_redraw_windows(server);
+
+		snprintf(response, MAX_MSG_SIZE,
+				 "{\"success\": \"master: %s\"}", toplevel->xdg_toplevel->title);
 	}
 }
 
