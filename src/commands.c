@@ -46,6 +46,8 @@ void window_kill_command(char *tokens[], int ntokens, char *response,
 						 struct turtile_context *context);
 void window_move_to_command(char *tokens[], int ntokens, char *response,
 							struct turtile_context *context);
+void window_master_toggle_command(char *tokens[], int ntokens, char *response,
+								  struct turtile_context *context);
 void workspace_command(char *tokens[], int ntokens, char *response,
 					   struct turtile_context *context);
 void workspace_list_command(char *tokens[], int ntokens, char *response,
@@ -67,6 +69,7 @@ static command_t commands[] = {
     {"window", "cycle", window_cycle_command},
     {"window", "kill", window_kill_command},
     {"window", "move-to", window_move_to_command},
+    {"window", "mtoggle", window_master_toggle_command},
     {"window", NULL, window_command},
     {"workspace", "list", workspace_list_command},
     {"workspace", "switch", workspace_switch_command},
@@ -255,7 +258,7 @@ void window_kill_command(char *tokens[], int ntokens, char *response,
 				 "{\"error\": \"window %s not found\"}", new_toplevel_id);
 
 	} else{
-		toplevel = get_first_toplevel(server);
+		toplevel = get_first_focus_toplevel(server);
 		kill_toplevel(toplevel);
 		snprintf(response, MAX_MSG_SIZE,
 				 "{\"success\": \"kill: %s\"}", toplevel->xdg_toplevel->title);
@@ -289,7 +292,7 @@ void window_move_to_command(char *tokens[], int ntokens, char *response,
 				return;
 			}
 		} else {
-			toplevel_to_move = get_first_toplevel(server);
+			toplevel_to_move = get_first_focus_toplevel(server);
 			if (!toplevel_to_move) {
 				snprintf(response, MAX_MSG_SIZE,
 						 "{\"error\": \"no focused window to move\"}");
@@ -308,6 +311,57 @@ void window_move_to_command(char *tokens[], int ntokens, char *response,
         snprintf(response, MAX_MSG_SIZE,
                  "{\"error\": \"missing argument: workspace name\"}");
 	}
+}
+
+void window_master_toggle_command(char *tokens[], int ntokens, char *response,
+								  struct turtile_context *context){
+	// Set designated toplevel as master
+	struct turtile_server *server = context->server;
+	struct turtile_toplevel *toplevel;
+
+	if(ntokens >= 1){
+		char *toplevel_id = tokens[0];
+
+		toplevel = get_toplevel(server, toplevel_id);
+
+		if(toplevel != NULL){
+			set_master_toplevel(toplevel);
+
+			snprintf(response, MAX_MSG_SIZE,
+					 "{\"success\": \"master: %s\"}",
+					 toplevel->xdg_toplevel->title);
+			return;
+		} else {
+			snprintf(response, MAX_MSG_SIZE,
+					 "{\"error\": \"window %s not found\"}", toplevel_id);
+			return;
+		}
+	} else{
+		toplevel = get_first_focus_toplevel(server);
+		if(toplevel == get_first_toplevel(server)){
+
+			struct turtile_toplevel *next_toplevel =
+				get_next_focus_toplevel(server);
+			if(next_toplevel != NULL){
+				set_master_toplevel(get_next_focus_toplevel(server));
+				snprintf(response, MAX_MSG_SIZE,
+						 "{\"success\": \"master: %s\"}",
+						 toplevel->xdg_toplevel->title);
+				return;
+			} else {
+				snprintf(response, MAX_MSG_SIZE,
+						 "{\"error\": \"the current window is already master\"}");
+				return;
+			}
+		} else if(toplevel != NULL) {
+			set_master_toplevel(toplevel);
+			snprintf(response, MAX_MSG_SIZE,
+					 "{\"success\": \"master: %s\"}",
+					 toplevel->xdg_toplevel->title);
+			return;
+		}
+	}
+	snprintf(response, MAX_MSG_SIZE, "{\"error\": \"no window found\"}");
 }
 
 void workspace_command(char *tokens[], int ntokens, char *response,

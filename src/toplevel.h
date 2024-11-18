@@ -66,6 +66,13 @@ void focus_toplevel(struct turtile_toplevel *toplevel,
 void kill_toplevel(struct turtile_toplevel *toplevel);
 
 /**
+ * Set given toplevel as master
+ *
+ * @param toplevel The turtile toplevel to set as master.
+ */
+void set_master_toplevel(struct turtile_toplevel *toplevel);
+	
+/**
  * Retrieves the toplevel with the given ID from the given server.
  *
  * @param server The turtile server to search for the toplevel on.
@@ -83,6 +90,28 @@ struct turtile_toplevel *get_toplevel(struct turtile_server *server, char *id);
  *	       or NULL if no such toplevel is found.
  */
 struct turtile_toplevel *get_first_toplevel(struct turtile_server *server);
+
+/**
+ * Retrieves the first toplevel of the focus stack on the active workspace
+ * of the given server.
+ * If no such toplevel is found, NULL is returned.
+
+ * @param server The turtile server to search for the toplevel on.
+ * @return A pointer to the first toplevel of the focus stack on the active
+ *	       workspace, or NULL if no such toplevel is found.
+ */
+struct turtile_toplevel *get_first_focus_toplevel(struct turtile_server *server);
+
+/**
+ * Retrieves the next toplevel of the focus stack on the active workspace
+ * of the given server.
+ * If no such toplevel is found, NULL is returned.
+
+ * @param server The turtile server to search for the toplevel on.
+ * @return A pointer to the next toplevel of the focus stack on the active
+ *	       workspace, or NULL if no such toplevel is found.
+ */
+struct turtile_toplevel *get_next_focus_toplevel(struct turtile_server *server);
 
 /**
  * Given a server, layout coordinates, and optional surface and position
