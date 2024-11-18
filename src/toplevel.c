@@ -90,11 +90,36 @@ void kill_toplevel(struct turtile_toplevel *toplevel) {
 		return;
 	} 		
 
-	struct turtile_toplevel *next_toplevel =
-		wl_container_of(workspace_toplevels.next, next_toplevel, auxlink);
+	struct turtile_toplevel *next_toplevel = get_next_focus_toplevel(server);
 	focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
 
 	wlr_xdg_toplevel_send_close(toplevel->xdg_toplevel);
+}
+
+void set_master_toplevel(struct turtile_toplevel *toplevel) {
+	struct turtile_server *server = toplevel->server;
+
+	wl_list_remove(&toplevel->link);
+	wl_list_insert(&server->toplevels, &toplevel->link);
+	server_redraw_windows(server);
+}
+
+void toggle_master_toplevel(struct turtile_toplevel *toplevel) {
+	struct turtile_server *server = toplevel->server;
+
+	struct wl_list workspace_toplevels; 
+	get_workspace_toplevels(server->active_workspace, &workspace_toplevels);
+
+	if (wl_list_length(&workspace_toplevels) < 2) {
+		return;
+	} else if(get_first_toplevel(server) == toplevel){
+		struct turtile_toplevel *next_toplevel =
+			wl_container_of(workspace_toplevels.next, next_toplevel, auxlink);
+		focus_toplevel(next_toplevel, next_toplevel->xdg_toplevel->base->surface);
+		toggle_master_toplevel(next_toplevel);
+	} else {
+		set_master_toplevel(toplevel);
+	}
 }
 
 struct turtile_toplevel *get_toplevel(struct turtile_server *server, char *id) {
@@ -109,10 +134,31 @@ struct turtile_toplevel *get_toplevel(struct turtile_server *server, char *id) {
 
 struct turtile_toplevel *get_first_toplevel(struct turtile_server *server) {
 	struct turtile_toplevel *toplevel;
+	wl_list_for_each(toplevel, &server->toplevels, link)
+		if (toplevel->workspace == server->active_workspace)
+			return toplevel;
+	return NULL;
+}
+
+struct turtile_toplevel *get_first_focus_toplevel(struct turtile_server *server) {
+	struct turtile_toplevel *toplevel;
 	wl_list_for_each(toplevel, &server->focus_toplevels, flink)
 		if (toplevel->workspace == server->active_workspace)
 			return toplevel;
 	return NULL;
+}
+
+struct turtile_toplevel *get_next_focus_toplevel(struct turtile_server *server) {
+	struct wl_list workspace_toplevels; 
+	get_workspace_toplevels(server->active_workspace, &workspace_toplevels);
+
+	if (wl_list_length(&workspace_toplevels) < 2) {
+		return NULL;
+	} else {
+		struct turtile_toplevel *next_toplevel =
+			wl_container_of(workspace_toplevels.next, next_toplevel, auxlink);
+		return next_toplevel;
+	}
 }
 
 struct turtile_toplevel *desktop_toplevel_at(
@@ -185,7 +231,7 @@ void xdg_toplevel_unmap(struct wl_listener *listener, void *data) {
     if (toplevel == toplevel->server->grabbed_toplevel) {
         reset_cursor_mode(toplevel->server);
 
-		struct turtile_toplevel *newfocus = get_first_toplevel(toplevel->server);
+		struct turtile_toplevel *newfocus = get_first_focus_toplevel(toplevel->server);
 		focus_toplevel(newfocus, newfocus->xdg_toplevel->base->surface);
     }
 

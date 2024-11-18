@@ -258,7 +258,7 @@ void window_kill_command(char *tokens[], int ntokens, char *response,
 				 "{\"error\": \"window %s not found\"}", new_toplevel_id);
 
 	} else{
-		toplevel = get_first_toplevel(server);
+		toplevel = get_first_focus_toplevel(server);
 		kill_toplevel(toplevel);
 		snprintf(response, MAX_MSG_SIZE,
 				 "{\"success\": \"kill: %s\"}", toplevel->xdg_toplevel->title);
@@ -292,7 +292,7 @@ void window_move_to_command(char *tokens[], int ntokens, char *response,
 				return;
 			}
 		} else {
-			toplevel_to_move = get_first_toplevel(server);
+			toplevel_to_move = get_first_focus_toplevel(server);
 			if (!toplevel_to_move) {
 				snprintf(response, MAX_MSG_SIZE,
 						 "{\"error\": \"no focused window to move\"}");
@@ -320,34 +320,48 @@ void window_master_toggle_command(char *tokens[], int ntokens, char *response,
 	struct turtile_toplevel *toplevel;
 
 	if(ntokens >= 1){
-		char *new_toplevel_id = tokens[0];
+		char *toplevel_id = tokens[0];
 
-		wl_list_for_each(toplevel, &server->focus_toplevels, flink) {
-			if(strcmp(toplevel->id, new_toplevel_id) == 0){
+		toplevel = get_toplevel(server, toplevel_id);
 
-				wl_list_remove(&toplevel->link);
-				wl_list_insert(&server->toplevels, &toplevel->link);
-				server_redraw_windows(server);
+		if(toplevel != NULL){
+			set_master_toplevel(toplevel);
 
+			snprintf(response, MAX_MSG_SIZE,
+					 "{\"success\": \"master: %s\"}",
+					 toplevel->xdg_toplevel->title);
+			return;
+		} else {
+			snprintf(response, MAX_MSG_SIZE,
+					 "{\"error\": \"window %s not found\"}", toplevel_id);
+			return;
+		}
+	} else{
+		toplevel = get_first_focus_toplevel(server);
+		if(toplevel == get_first_toplevel(server)){
+
+			struct turtile_toplevel *next_toplevel =
+				get_next_focus_toplevel(server);
+			if(next_toplevel != NULL){
+				set_master_toplevel(get_next_focus_toplevel(server));
 				snprintf(response, MAX_MSG_SIZE,
 						 "{\"success\": \"master: %s\"}",
 						 toplevel->xdg_toplevel->title);
 				return;
+			} else {
+				snprintf(response, MAX_MSG_SIZE,
+						 "{\"error\": \"the current window is already master\"}");
+				return;
 			}
+		} else if(toplevel != NULL) {
+			set_master_toplevel(toplevel);
+			snprintf(response, MAX_MSG_SIZE,
+					 "{\"success\": \"master: %s\"}",
+					 toplevel->xdg_toplevel->title);
+			return;
 		}
-		snprintf(response, MAX_MSG_SIZE,
-				 "{\"error\": \"window %s not found\"}", new_toplevel_id);
-
-	} else{
-		toplevel = get_first_toplevel(server);
-
-		wl_list_remove(&toplevel->link);
-		wl_list_insert(&server->toplevels, &toplevel->link);
-		server_redraw_windows(server);
-
-		snprintf(response, MAX_MSG_SIZE,
-				 "{\"success\": \"master: %s\"}", toplevel->xdg_toplevel->title);
 	}
+	snprintf(response, MAX_MSG_SIZE, "{\"error\": \"no window found\"}");
 }
 
 void workspace_command(char *tokens[], int ntokens, char *response,

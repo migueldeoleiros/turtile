@@ -59,7 +59,7 @@ void switch_workspace(struct turtile_workspace *workspace){
 	struct turtile_server *server = workspace->server;
 	server->active_workspace = workspace;
 
-	struct turtile_toplevel *newfocus = get_first_toplevel(server);
+	struct turtile_toplevel *newfocus = get_first_focus_toplevel(server);
 	if(newfocus != NULL)
 		focus_toplevel(newfocus, newfocus->xdg_toplevel->base->surface);
 
