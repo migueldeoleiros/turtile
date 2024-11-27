@@ -1,11 +1,9 @@
 
 <div align="center">
-    <img width="150" src="assets/logo_turtile.svg">
+    <img width="750" src="assets/banner_turtile.svg">
 </div>
 
 <br>
-
-<h1 align="center">turtile</h1>
 
 A simple and customizable tiling Wayland compositor based on [wlroots](https://gitlab.freedesktop.org/wlroots/wlroots)
 
@@ -40,4 +38,5 @@ turtile was heavily inspired by other projects like:
 - [bspwm](https://github.com/baskerville/bspwm)
 
 Thanks to [Perry Werneck](https://github.com/PerryWerneck) for his help with the build system!
+
 And [@oli.garlic](https://www.instagram.com/oli.garlic) for the awesome logo she designed!
