@@ -1,4 +1,10 @@
-# turtile 🐢
+
+<div align="center">
+    <img width="750" src="assets/banner_turtile.svg">
+</div>
+
+<br>
+
 A simple and customizable tiling Wayland compositor based on [wlroots](https://gitlab.freedesktop.org/wlroots/wlroots)
 
 # Overview
@@ -20,7 +26,9 @@ If you find a bug or have a suggestion feel free to file an issue or create a ne
 If you are interested in contributing in any other way, please see our [CONTRIBUTING.md](https://github.com/migueldeoleiros/turtile/blob/master/CONTRIBUTING.md) file for more information.
 
 # License
-turtile is licensed under [GPL v3](https://github.com/migueldeoleiros/turtile/blob/master/LICENSE) !
+turtile's code is licensed under [GPL v3](https://github.com/migueldeoleiros/turtile/blob/master/LICENSE) !
+
+Additionally all it's assets, like logos, are licensed unde [CC BY-SA](https://creativecommons.org/licenses/by/4.0/)
 
 # Acknowledgments
 turtile was heavily inspired by other projects like:
@@ -31,4 +39,6 @@ turtile was heavily inspired by other projects like:
 - [vivarium](https://github.com/inclement/vivarium)
 - [bspwm](https://github.com/baskerville/bspwm)
 
-Special thanks to [Perry Werneck](https://github.com/PerryWerneck) for his help with the build system!
+Thanks to [Perry Werneck](https://github.com/PerryWerneck) for his help with the build system!
+
+And [@oli.garlic](https://www.instagram.com/oli.garlic) for the awesome logo she designed!
