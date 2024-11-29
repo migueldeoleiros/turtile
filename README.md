@@ -26,7 +26,9 @@ If you find a bug or have a suggestion feel free to file an issue or create a ne
 If you are interested in contributing in any other way, please see our [CONTRIBUTING.md](https://github.com/migueldeoleiros/turtile/blob/master/CONTRIBUTING.md) file for more information.
 
 # License
-turtile is licensed under [GPL v3](https://github.com/migueldeoleiros/turtile/blob/master/LICENSE) !
+turtile's code is licensed under [GPL v3](https://github.com/migueldeoleiros/turtile/blob/master/LICENSE) !
+
+Additionally all it's assets, like logos, are licensed unde [CC BY-SA](https://creativecommons.org/licenses/by/4.0/)
 
 # Acknowledgments
 turtile was heavily inspired by other projects like:
